@@ -2,17 +2,18 @@
   <div class="vue-query-rule d-flex mb-1">
     <b-container fluid class="p-0">
       <b-row no-gutters>
-        <b-col cols="4" class="pr-1">
-          <v-select
-            size="sm"
-            :options="options"
-            :reduce="item => item.id"
-            label="name"
-            autocomplete="off"
-            v-model="rule.id"
-          />
+        <b-col cols="4" class="vue-query-rule-id pr-1">
+          <slot name="rule" v-bind:rule="rule" v-bind:ruleIDOptions="ruleIDOptions">
+            <b-form-select
+              size="sm"
+              :options="ruleIDOptions"
+              value-field="id"
+              text-field="name"
+              v-model="rule.id"
+            />
+          </slot>
         </b-col>
-        <b-col cols="3" class="pr-1">
+        <b-col cols="3" class="vue-query-rule-operator pr-1">
           <v-select
             size="sm"
             :options="operators"
@@ -22,7 +23,7 @@
             v-model="rule.operator"
           />
         </b-col>
-        <b-col cols="5" class="pr-1">
+        <b-col cols="5" class="vue-query-rule-value pr-1">
           <v-select
             size="sm"
             :options="valueOptions"
@@ -81,6 +82,16 @@ export default {
       return self.options.find(function(option){
         return option.id === self.rule.id
       });
+    },
+    ruleIDOptions: function() {
+      const self = this;
+      const options = self.options;
+      return options.map(function(option){
+        return {
+          id: option.id,
+          name: option.name
+        }
+      })
     },
     valueOptions: function() {
       const self = this;
@@ -195,5 +206,11 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+  .vue-query-rule {
+
+    .vs__clear {
+      display: none;
+    }
+  }
 </style>

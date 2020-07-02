@@ -55,10 +55,18 @@
         <b-card-body
           class="p-2"
         >
-          <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false" />
+          <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false">
+            <template slot="rule">
+              <slot name="rule" />
+            </template>
+          </VueQueryGroup>
         </b-card-body>
       </b-card>
-      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else />
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else>
+        <template slot="rule">
+          <slot name="rule" />
+        </template>
+      </VueQueryRule>
     </template>
   </div>
 </template>

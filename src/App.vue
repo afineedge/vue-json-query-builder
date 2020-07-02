@@ -1,7 +1,18 @@
 <template>
   <div id="app">
     <h1>Vue Query Builder</h1>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder" />
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder">
+      <template slot="rule">
+        <!-- <v-select
+          size="sm"
+          :options="ruleIDOptions"
+          :reduce="item => item.id"
+          label="name"
+          autocomplete="off"
+          v-model="rule.id"
+        /> -->
+      </template>
+    </VueQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
     <b-card>
       <pre><code>{{ JSON.stringify(currentQuery, null, 2) }}</code></pre>

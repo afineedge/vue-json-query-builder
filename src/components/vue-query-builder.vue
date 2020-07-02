@@ -18,7 +18,11 @@
       class="p-2"
       v-if="!isCollapsed"
     >
-      <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
+      <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options">
+        <template slot="rule">
+          <slot name="rule" />
+        </template>
+      </VueQueryGroup>
     </b-card-body>
     <b-card-footer
       footer-border-variant="primary"

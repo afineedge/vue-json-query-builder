@@ -17,6 +17,6 @@ $vs-controls-size: .6;
 
 @import "vue-select/src/scss/vue-select.scss";
 
-.vs__clear {
-	display: none;
+.vs__open-indicator {
+	margin-top: 2px;
 }
