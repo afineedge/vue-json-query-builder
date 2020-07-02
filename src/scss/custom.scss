@@ -1,0 +1,30 @@
+
+
+// Bootstrap and its default variables
+$theme-colors: (
+  "primary": #a23422,
+  "primary-light-dark": lighten(#a23422, 4%),
+  "primary-dark": darken(#a23422, 4%)
+);
+
+@import '../../node_modules/bootstrap/scss/bootstrap';
+// BootstrapVue and its default variables
+@import '../../node_modules/bootstrap-vue/src/index.scss';
+
+
+// V-Select
+$vs-controls-size: .6;
+
+@import "vue-select/src/scss/vue-select.scss";
+
+.vs__clear {
+	display: none;
+}
+
+.json-query-builder {
+	font-size: 12px;
+
+	* {
+	  font-size: 12px !important;
+	}
+}
