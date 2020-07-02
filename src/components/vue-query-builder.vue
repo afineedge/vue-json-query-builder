@@ -14,7 +14,7 @@
       <b-card-body
         class="p-2"
       >
-        <JSONQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
+        <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
       </b-card-body>
       <b-card-footer
         footer-border-variant="primary"
@@ -56,12 +56,12 @@
 
 <script>
 
-import JSONQueryGroup from '@/components/json-query-group.vue';
+import VueQueryGroup from '@/components/vue-query-group.vue';
 
 export default {
-  name: 'JSONQueryBuilder',
+  name: 'VueQueryBuilder',
   components: {
-    JSONQueryGroup
+    VueQueryGroup
   },
   props: {
     query: {

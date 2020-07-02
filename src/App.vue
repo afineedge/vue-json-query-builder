@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <h1>JSON Query Builder</h1>
-    <JSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
+    <h1>Vue Query Builder</h1>
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
   </div>
 </template>
 
@@ -14,12 +14,12 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-import JSONQueryBuilder from '@/components/json-query-builder.vue';
+import VueQueryBuilder from '@/components/vue-query-builder.vue';
 
 export default {
   name: 'App',
   components: {
-    JSONQueryBuilder
+    VueQueryBuilder
   },
   data: function() {
     return {

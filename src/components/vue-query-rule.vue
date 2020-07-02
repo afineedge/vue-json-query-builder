@@ -1,5 +1,5 @@
 <template>
-  <div class="json-query-rule d-flex mb-1">
+  <div class="vue-query-rule d-flex mb-1">
     <b-container fluid class="p-0">
       <b-row no-gutters>
         <b-col cols="4" class="pr-1">
@@ -58,7 +58,7 @@ import vSelect from 'vue-select';
 Vue.component('v-select', vSelect);
 
 export default {
-  name: 'JSONQueryRule',
+  name: 'VueQueryRule',
   components: {
   },
   props: {

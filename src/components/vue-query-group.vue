@@ -55,21 +55,21 @@
         <b-card-body
           class="p-2"
         >
-          <JSONQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false" />
+          <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false" />
         </b-card-body>
       </b-card>
-      <JSONQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else />
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else />
     </template>
   </div>
 </template>
 
 <script>
-import JSONQueryRule from '@/components/json-query-rule.vue';
+import VueQueryRule from '@/components/vue-query-rule.vue';
 
 export default {
-  name: 'JSONQueryGroup',
+  name: 'VueQueryGroup',
   components: {
-    JSONQueryRule
+    VueQueryRule
   },
   props: {
     currentQuery: {
