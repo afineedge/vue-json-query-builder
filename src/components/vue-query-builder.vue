@@ -70,6 +70,13 @@ export default {
     },
     options: {
       type: Array
+    },
+    value: {
+      type: Object,
+      required: false,
+      default: function(){
+        return {}
+      }
     }
   },
   data: function() {
@@ -87,6 +94,12 @@ export default {
     resetToDefaultQuery: function() {
       const self = this;
       self.currentQuery = JSON.parse(JSON.stringify(self.query));
+    }
+  },
+  watch: {
+    currentQuery: function() {
+      const self = this;
+      self.$emit('input', self.currentQuery);
     }
   }
 }

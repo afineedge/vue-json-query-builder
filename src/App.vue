@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1>Vue Query Builder</h1>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
   </div>
 </template>
 
@@ -23,6 +23,7 @@ export default {
   },
   data: function() {
     return {
+      currentQuery: {},
       query: {
         condition: 'and',
         rules: [{
