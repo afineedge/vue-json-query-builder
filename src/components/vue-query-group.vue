@@ -92,7 +92,6 @@ export default {
   },
   mounted: function() {
       const self = this;
-      console.log(self.currentQuery.rules);
       if (self.currentQuery.rules.length === 0){
         self.addRule();
       }

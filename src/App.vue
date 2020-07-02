@@ -1,7 +1,8 @@
 <template>
   <div id="app">
     <h1>Vue Query Builder</h1>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" storage="test-vue-query-builder" />
+    <div v-html="currentQuery" />
   </div>
 </template>
 
@@ -39,7 +40,7 @@ export default {
           rules: [{
             id: 'owner',
             operator: '!=',
-            value: '0'
+            value: 0
           }]
         }]
       },
@@ -250,6 +251,9 @@ export default {
           name: 'Omar Warren'
         }, {
           id: 6,
+          name: 'Samantha Lowenstein'
+        }, {
+          id: 7,
           name: 'Zachary Appleton'
         }]
       }]

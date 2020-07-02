@@ -1,60 +1,109 @@
 <template>
-    <b-card no-body
-      class="json-query-builder"
-      border-variant="primary"
+  <b-card no-body
+    class="json-query-builder"
+    border-variant="primary"
+  >
+    <b-card-header
+      header-bg-variant="primary"
+      header-border-variant="primary"
+      header-text-variant="white"
+      header-class="json-query-builder-header py-2 px-3"
     >
-      <b-card-header
-        header-bg-variant="primary"
-        header-border-variant="primary"
-        header-text-variant="white"
-        header-class="json-query-builder-header py-2 px-3"
+      <small>Query Builder</small>
+    </b-card-header>
+    <b-card-body
+      class="p-2"
+    >
+      <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
+    </b-card-body>
+    <b-card-footer
+      footer-border-variant="primary"
+      footer-class="json-query-builder-footer d-flex p-2"
+    >
+      <b-button-group
+        class="mr-1"
+        size="sm"
+        v-if="storage.length > 0"
       >
-        <small>Query Builder</small>
-      </b-card-header>
-      <b-card-body
-        class="p-2"
-      >
-        <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
-      </b-card-body>
-      <b-card-footer
-        footer-border-variant="primary"
-        footer-class="json-query-builder-footer d-flex p-2"
-      >
-        <b-button-group
-          class="mr-1"
-            size="sm"
-        >
-          <b-button
-            variant="outline-primary"
-          >
-            <b-icon-bookmark-plus /> Save Query
-          </b-button>
-          <b-button
-            variant="outline-primary"
-          >
-            <b-icon-bookmarks /> View Saved Queries
-          </b-button>
-        </b-button-group>
         <b-button
-          size="sm"
-          variant="secondary"
-          class="ml-auto mr-1"
-          v-on:click="resetToDefaultQuery"
+          variant="outline-primary"
+          v-on:click="modals.saveQuery.visible = true"
         >
-          <b-icon-arrow-counterclockwise /> Reset to Default Query
+          <b-icon-bookmark-plus /> Save Query
         </b-button>
         <b-button
-          size="sm"
+          variant="outline-primary"
+          v-on:click="modals.viewSavedQueries.visible = true"
+          v-if="savedQueries.length > 0"
+        >
+          <b-icon-bookmarks /> View Saved Queries
+        </b-button>
+      </b-button-group>
+      <b-button
+        size="sm"
+        variant="secondary"
+        class="ml-auto mr-1"
+        v-on:click="resetToDefaultQuery"
+      >
+        <b-icon-arrow-counterclockwise /> Reset to Default Query
+      </b-button>
+      <b-button
+        size="sm"
+        variant="success"
+      >
+        Run Query <b-icon-arrow-right-circle-fill />
+      </b-button>
+    </b-card-footer>
+    <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.saveQuery.visible" title="Save Query">
+      <p>
+        Please enter the name for your new query below.
+      </p>
+      <b-form-input
+        size="sm"
+        v-model="modals.saveQuery.queryName"
+      />
+      <template v-slot:modal-footer>
+        <b-button
+          v-on:click="modals.saveQuery.visible = false"
+        >
+          Cancel
+        </b-button>
+        <b-button
           variant="success"
+          v-on:click="saveQuery"
+          v-bind:disabled="saveQueryDisabled"
         >
-          Run Query <b-icon-arrow-right-circle-fill />
+          <b-icon-cloud-upload /> Save Query
         </b-button>
-      </b-card-footer>
-      <div v-html="currentQuery" />
-    </b-card>
+      </template>
+    </b-modal>
+    <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.viewSavedQueries.visible" title="Saved Queries" hide-footer>
+      <b-table
+        :items="savedQueries"
+        :fields="['name', 'createdDate', 'actions']"
+      >
+        <template v-slot:cell(createdDate)="row">
+          {{ row | moment("dddd, MMMM Do, YYYY")}}
+        </template>
+        <template v-slot:cell(actions)="row">
+          <b-button-group size="sm">
+            <b-button @click="loadSavedQuery(row.item.query)">
+              Load
+            </b-button>
+            <b-button @click="deleteSavedQuery(row.item.query)" variant="danger">
+              Delete
+            </b-button>
+          </b-button-group>
+        </template>
+      </b-table>
+    </b-modal>
+  </b-card>
 </template>
 
 <script>
+
+import Vue from 'vue';
+Vue.use(require('vue-moment'));
 
 import VueQueryGroup from '@/components/vue-query-group.vue';
 
@@ -77,23 +126,109 @@ export default {
       default: function(){
         return {}
       }
+    },
+    storage: {
+      type: String,
+      required: false,
+      default: ''
     }
   },
   data: function() {
     return {
-      currentQuery: {}
+      currentQuery: {},
+      savedQueries: '',
+      modals: {
+        saveQuery: {
+          visible: false,
+          queryName: ''
+        },
+        viewSavedQueries: {
+          visible: false
+        }
+      }
     }
   },
   computed: {
+    savedQueriesLocation: function(){
+      const self = this;
+      return 'VueQueryBuilder_saved_' + self.storage;
+    },
+    storedQueriesLocation: function(){
+      const self = this;
+      return 'VueQueryBuilder_stored_' + self.storage;
+    },
+    saveQueryDisabled: function() {
+      const self = this;
+      return self.modals.saveQuery.queryName.length < 2;
+    }
   },
   created: function() {
     const self = this;
+    const savedQueries = self.getSavedQueries();
+    if (typeof savedQueries === 'undefined'){
+      self.resetToDefaultQuery();
+    } else {
+      self.currentQuery = savedQueries;
+    }
     self.resetToDefaultQuery();
   },
   methods: {
     resetToDefaultQuery: function() {
       const self = this;
       self.currentQuery = JSON.parse(JSON.stringify(self.query));
+    },
+    getSavedQueries: function() {
+      const self = this;
+      const savedQueries = JSON.parse(localStorage.getItem(self.savedQueriesLocation));
+      if (Array.isArray(savedQueries)){
+        self.savedQueries = savedQueries;
+      } else {
+        self.savedQueries = [];
+      }
+      return self.savedQueries;
+    },
+    saveQuery: function() {
+      const self = this;
+      const savedQueries = self.savedQueries;
+      savedQueries.push({
+        name: self.modals.saveQuery.queryName,
+        createdDate: new Date(),
+        query: self.currentQuery
+      });
+      self.saveQueries();
+      self.modals.saveQuery.visible = false;
+      self.modals.saveQuery.queryName = '';
+    },
+    loadSavedQuery: function(query) {
+      const self = this;
+      self.currentQuery = JSON.parse(JSON.stringify(query));
+      self.modals.viewSavedQueries.visible = false;
+    },
+    saveQueries: function() {
+      const self = this;
+      localStorage.setItem(self.savedQueriesLocation, JSON.stringify(self.savedQueries));
+    },
+    deleteSavedQuery: function(query) {
+      const self = this;
+      const currentSavedQueries = self.savedQueries;
+      self.$bvModal.msgBoxConfirm('Please confirm that you wish to delete this query.', {
+        title: 'Confirm Query Deletion',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: 'Yes',
+        cancelTitle: 'No',
+        footerClass: 'p-2',
+        hideHeaderClose: true,
+        centered: true
+      }).then(function(response) {
+        if (response === true){
+          currentSavedQueries.splice(currentSavedQueries.indexOf(query), 1);
+          self.saveQueries();
+        } else {
+          return false;
+        }
+      });
     }
   },
   watch: {
@@ -106,4 +241,20 @@ export default {
 </script>
 
 <style lang="scss">
+
+  .json-query-builder {
+    font-size: 12px;
+
+    * {
+      font-size: 12px !important;
+    }
+  }
+
+  .modal {
+    font-size: 12px;
+
+    * {
+      font-size: 12px !important;
+    }
+  }
 </style>
