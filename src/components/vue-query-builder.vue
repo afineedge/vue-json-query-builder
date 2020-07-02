@@ -7,18 +7,23 @@
       header-bg-variant="primary"
       header-border-variant="primary"
       header-text-variant="white"
-      header-class="json-query-builder-header py-2 px-3"
+      header-class="json-query-builder-header p-2 d-flex align-items-center"
+      v-on:click="isCollapsed = !isCollapsed"
     >
-      <small>Query Builder</small>
+      <small class="mr-auto">Query Builder</small>
+      <b-icon-caret-up-fill v-if="isCollapsed" />
+      <b-icon-caret-down-fill v-else />
     </b-card-header>
     <b-card-body
       class="p-2"
+      v-if="!isCollapsed"
     >
       <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options" />
     </b-card-body>
     <b-card-footer
       footer-border-variant="primary"
       footer-class="json-query-builder-footer d-flex p-2"
+      v-if="!isCollapsed"
     >
       <b-button-group
         class="mr-1"
@@ -34,7 +39,7 @@
         <b-button
           variant="outline-primary"
           v-on:click="modals.viewSavedQueries.visible = true"
-          v-if="savedQueries.length > 0"
+          v-if="modals.viewSavedQueries.savedQueries.length > 0"
         >
           <b-icon-bookmarks /> View Saved Queries
         </b-button>
@@ -50,6 +55,8 @@
       <b-button
         size="sm"
         variant="success"
+        v-on:click="runQuery"
+        v-if="runQuery"
       >
         Run Query <b-icon-arrow-right-circle-fill />
       </b-button>
@@ -79,7 +86,7 @@
     </b-modal>
     <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.viewSavedQueries.visible" title="Saved Queries" hide-footer>
       <b-table
-        :items="savedQueries"
+        :items="modals.viewSavedQueries.savedQueries"
         :fields="['name', 'createdDate', 'actions']"
       >
         <template v-slot:cell(createdDate)="row">
@@ -131,19 +138,26 @@ export default {
       type: String,
       required: false,
       default: ''
+    },
+    runQuery: {
+      type: [Function, Object],
+      required: false,
+      default: null
     }
   },
   data: function() {
     return {
       currentQuery: {},
-      savedQueries: '',
+      isCollapsed: false,
+      storedQueries: '',
       modals: {
         saveQuery: {
           visible: false,
           queryName: ''
         },
         viewSavedQueries: {
-          visible: false
+          visible: false,
+          savedQueries: []
         }
       }
     }
@@ -164,13 +178,16 @@ export default {
   },
   created: function() {
     const self = this;
-    const savedQueries = self.getSavedQueries();
-    if (typeof savedQueries === 'undefined'){
+    
+    const storedQueries = self.getStoredQueries();
+
+    self.getSavedQueries();
+
+    if (typeof storedQueries === 'undefined'){
       self.resetToDefaultQuery();
     } else {
-      self.currentQuery = savedQueries;
+      self.currentQuery = storedQueries;
     }
-    self.resetToDefaultQuery();
   },
   methods: {
     resetToDefaultQuery: function() {
@@ -181,15 +198,25 @@ export default {
       const self = this;
       const savedQueries = JSON.parse(localStorage.getItem(self.savedQueriesLocation));
       if (Array.isArray(savedQueries)){
-        self.savedQueries = savedQueries;
+        self.modals.viewSavedQueries.savedQueries = savedQueries;
       } else {
-        self.savedQueries = [];
+        self.modals.viewSavedQueries.savedQueries = [];
       }
-      return self.savedQueries;
+      return self.modals.viewSavedQueries.savedQueries;
+    },
+    getStoredQueries: function() {
+      const self = this;
+      const storedQueries = JSON.parse(localStorage.getItem(self.storedQueriesLocation));
+      if (typeof storedQueries === 'object'){
+        self.storedQueries = storedQueries;
+      } else {
+        self.storedQueries = [];
+      }
+      return self.storedQueries;
     },
     saveQuery: function() {
       const self = this;
-      const savedQueries = self.savedQueries;
+      const savedQueries = self.modals.viewSavedQueries.savedQueries;
       savedQueries.push({
         name: self.modals.saveQuery.queryName,
         createdDate: new Date(),
@@ -206,11 +233,15 @@ export default {
     },
     saveQueries: function() {
       const self = this;
-      localStorage.setItem(self.savedQueriesLocation, JSON.stringify(self.savedQueries));
+      localStorage.setItem(self.savedQueriesLocation, JSON.stringify(self.modals.viewSavedQueries.savedQueries));
+    },
+    storeQueries: function() {
+      const self = this;
+      localStorage.setItem(self.storedQueriesLocation, JSON.stringify(self.currentQuery));
     },
     deleteSavedQuery: function(query) {
       const self = this;
-      const currentSavedQueries = self.savedQueries;
+      const currentSavedQueries = self.modals.viewSavedQueries.savedQueries;
       self.$bvModal.msgBoxConfirm('Please confirm that you wish to delete this query.', {
         title: 'Confirm Query Deletion',
         size: 'sm',
@@ -232,9 +263,13 @@ export default {
     }
   },
   watch: {
-    currentQuery: function() {
-      const self = this;
-      self.$emit('input', self.currentQuery);
+    currentQuery: {
+      deep: true,
+      handler: function() {
+        const self = this;
+        self.$emit('input', self.currentQuery);
+        self.storeQueries();
+      }
     }
   }
 }

@@ -35,6 +35,7 @@
           />
           <b-form-input
             size="sm"
+            autocomplete="off"
             v-model="rule.value"
             v-else
           />

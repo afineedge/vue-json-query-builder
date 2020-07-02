@@ -1,8 +1,11 @@
 <template>
   <div id="app">
     <h1>Vue Query Builder</h1>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" storage="test-vue-query-builder" />
-    <div v-html="currentQuery" />
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder" />
+    <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
+    <b-card>
+      <pre><code>{{ JSON.stringify(currentQuery, null, 2) }}</code></pre>
+    </b-card>
   </div>
 </template>
 
@@ -41,6 +44,10 @@ export default {
             id: 'owner',
             operator: '!=',
             value: 0
+          }, {
+            id: 'price',
+            operator: '<=',
+            value: 80000
           }]
         }]
       },
@@ -256,14 +263,24 @@ export default {
           id: 7,
           name: 'Zachary Appleton'
         }]
+      }, {
+        id: 'price',
+        name: 'Price',
+        type: 'dollar'
       }]
+    }
+  },
+  methods: {
+    runQuery: function(){
+      const self = this;
+      alert("Your current query:\n" + JSON.stringify(self.currentQuery), null, 4);
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap');
 
   #app {
     font-family: 'Open Sans', sans-serif;
@@ -274,6 +291,10 @@ export default {
     h1 {
       font-size: 24px;
       margin-bottom: 15px;
+    }
+
+    pre {
+      font-size: 10px;
     }
   }
 </style>
