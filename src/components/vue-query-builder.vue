@@ -212,9 +212,10 @@ export default {
 
       function addUUIDsToQueryAndChildren(query){
         const keys = Object.keys(query);
-        if (!keys.includes('uuid')){
-          query.$uuid = uuidv4();
-        }
+        Object.defineProperty(query, '_uuid', {
+          enumerable: false,
+          value: uuidv4()
+        })
 
         if (keys.includes('rules')){
           for (let i = 0; i < query.rules.length; i++){
@@ -267,6 +268,7 @@ export default {
     loadSavedQuery: function(query) {
       const self = this;
       self.currentQuery = JSON.parse(JSON.stringify(query));
+      self.addUUIDsToCurrentQuery();
       self.modals.viewSavedQueries.visible = false;
     },
     saveQueries: function() {

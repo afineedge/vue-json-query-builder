@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-2 d-flex">
+    <div class="d-flex">
       <b-button-group
         class="mr-1"
         size="sm"
@@ -47,7 +47,7 @@
     <template v-for="(item) in currentQuery.rules">
       <b-card
         no-body
-        class="my-2"
+        class="mt-2"
         v-bind:key="item.$uuid"
         border-variant="primary"
         v-if="typeof item.condition === 'string'"
@@ -71,7 +71,7 @@
           </VueQueryGroup>
         </b-card-body>
       </b-card>
-      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="item.$uuid" v-else>
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="item.$uuid" v-else class="mt-2">
         <template v-slot:ruleID="{rule, options}">
           <slot name="ruleID" :rule="rule" :options="options">
           </slot>
@@ -144,20 +144,32 @@ export default {
   methods: {
     addRule: function() {
       const self = this;
-      self.currentQuery.rules.push({
+      const newGroup = {
         id: self.options[0].id,
         operator: '=',
-        value: '',
-        uuid: uuidv4()
+        value: ''
+      }
+
+      Object.defineProperty(newGroup, '_uuid', {
+        enumerable: false,
+        value: uuidv4()
       })
+
+      self.currentQuery.rules.push(newGroup);
     },
     addGroup: function() {
       const self = this;
-      self.currentQuery.rules.push({
+      const newRule = {
         condition: 'and',
-        rules: [],
-        uuid: uuidv4()
+        rules: []
+      }
+
+      Object.defineProperty(newRule, '_uuid', {
+        enumerable: false,
+        value: uuidv4()
       })
+
+      self.currentQuery.rules.push(newRule);
     },
     deleteGroup: function() {
       const self = this;

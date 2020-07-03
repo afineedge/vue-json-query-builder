@@ -1,5 +1,5 @@
 <template>
-  <div class="vue-query-rule d-flex mb-1">
+  <div class="vue-query-rule d-flex">
     <b-container fluid class="p-0">
       <b-row no-gutters>
         <b-col cols="4" class="vue-query-rule-id pr-1">
