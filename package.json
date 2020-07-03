@@ -14,7 +14,7 @@
     "moment": "^2.27.0",
     "node-sass": "^4.14.1",
     "sass-loader": "^8.0.2",
-    "uuidv4": "^6.1.1",
+    "uuid": "^8.2.0",
     "vue": "^2.6.11",
     "vue-moment": "^4.1.0",
     "vue-select": "^3.10.5"

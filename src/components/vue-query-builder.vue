@@ -71,7 +71,7 @@
         size="sm"
         variant="success"
         class="d-flex align-items-center"
-        v-on:click="runQuery"
+        v-on:click="runQuery(currentQuery)"
         v-if="runQuery"
       >
         Run Query <b-icon-arrow-right-circle-fill class="ml-1" />
@@ -127,6 +127,8 @@
 
 import Vue from 'vue';
 Vue.use(require('vue-moment'));
+
+import { v4 as uuidv4 } from 'uuid';
 
 import VueQueryGroup from '@/components/vue-query-group.vue';
 
@@ -194,11 +196,10 @@ export default {
   },
   created: function() {
     const self = this;
+
+    self.getAndStoreSavedQueries();
     
     const storedQueries = self.getStoredQueries();
-
-    self.getSavedQueries();
-
     if (storedQueries){
       self.currentQuery = JSON.parse(JSON.stringify(storedQueries));
     } else {
@@ -206,11 +207,32 @@ export default {
     }
   },
   methods: {
+    addUUIDsToCurrentQuery: function() {
+      const self = this;
+
+      function addUUIDsToQueryAndChildren(query){
+        const keys = Object.keys(query);
+        if (!keys.includes('uuid')){
+          query.$uuid = uuidv4();
+        }
+
+        if (keys.includes('rules')){
+          for (let i = 0; i < query.rules.length; i++){
+            const rule = query.rules[i];
+            addUUIDsToQueryAndChildren(rule);
+          }
+        }
+      }
+
+      addUUIDsToQueryAndChildren(self.currentQuery);
+    },
     resetToDefaultQuery: function() {
       const self = this;
+
       self.currentQuery = JSON.parse(JSON.stringify(self.query));
+      self.addUUIDsToCurrentQuery();
     },
-    getSavedQueries: function() {
+    getAndStoreSavedQueries: function() {
       const self = this;
       const savedQueries = JSON.parse(localStorage.getItem(self.savedQueriesLocation));
       if (Array.isArray(savedQueries)){

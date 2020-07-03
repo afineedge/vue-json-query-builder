@@ -48,7 +48,7 @@
       <b-card
         no-body
         class="my-2"
-        v-bind:key="JSON.stringify(item)"
+        v-bind:key="item.$uuid"
         border-variant="primary"
         v-if="typeof item.condition === 'string'"
       >
@@ -71,7 +71,7 @@
           </VueQueryGroup>
         </b-card-body>
       </b-card>
-      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="JSON.stringify(item)" v-else>
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="item.$uuid" v-else>
         <template v-slot:ruleID="{rule, options}">
           <slot name="ruleID" :rule="rule" :options="options">
           </slot>
@@ -90,6 +90,9 @@
 </template>
 
 <script>
+
+import { v4 as uuidv4 } from 'uuid';
+
 import VueQueryRule from '@/components/vue-query-rule.vue';
 
 export default {
@@ -144,14 +147,16 @@ export default {
       self.currentQuery.rules.push({
         id: self.options[0].id,
         operator: '=',
-        value: ''
+        value: '',
+        uuid: uuidv4()
       })
     },
     addGroup: function() {
       const self = this;
       self.currentQuery.rules.push({
         condition: 'and',
-        rules: []
+        rules: [],
+        uuid: uuidv4()
       })
     },
     deleteGroup: function() {

@@ -44,6 +44,9 @@
 <script>
 import Vue from 'vue';
 
+import vSelect from 'vue-select';
+Vue.component('v-select', vSelect);
+
 import '@/scss/custom.scss';
 
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
@@ -303,9 +306,8 @@ export default {
     }
   },
   methods: {
-    runQuery: function(){
-      const self = this;
-      alert("Your current query:\n" + JSON.stringify(self.currentQuery), null, 4);
+    runQuery: function(response){
+      alert("Your current query:\n" + JSON.stringify(response), null, 4);
     }
   }
 }
