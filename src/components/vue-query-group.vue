@@ -25,7 +25,7 @@
         <b-button
           v-on:click="deleteGroup"
           variant="danger"
-          v-if="!topLevel"
+          v-if="level > 0"
         >
           <b-icon-trash-fill /> Delete Group
         </b-button>
@@ -44,18 +44,18 @@
         </b-button>
       </b-button-group>
     </div>
-    <template v-for="(item, index) in currentQuery.rules">
+    <template v-for="(item) in currentQuery.rules">
       <b-card
         no-body
         class="my-2"
-        v-bind:key="index"
+        v-bind:key="JSON.stringify(item)"
         border-variant="primary"
         v-if="typeof item.condition === 'string'"
       >
         <b-card-body
           class="p-2"
         >
-          <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false">
+          <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:level="level + 1">
             <template v-slot:ruleID="{rule, options}">
               <slot name="ruleID" :rule="rule" :options="options">
               </slot>
@@ -71,7 +71,7 @@
           </VueQueryGroup>
         </b-card-body>
       </b-card>
-      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else>
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="JSON.stringify(item)" v-else>
         <template v-slot:ruleID="{rule, options}">
           <slot name="ruleID" :rule="rule" :options="options">
           </slot>
@@ -105,10 +105,10 @@ export default {
     options: {
       type: Array
     },
-    topLevel: {
-      type: Boolean,
+    level: {
+      type: Number,
       required: false,
-      default: true
+      default: 0
     }
   },
   data: function() {
