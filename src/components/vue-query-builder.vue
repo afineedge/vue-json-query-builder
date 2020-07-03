@@ -45,33 +45,36 @@
       >
         <b-button
           variant="outline-primary"
+          class="d-flex align-items-center"
           v-on:click="modals.saveQuery.visible = true"
         >
-          <b-icon-bookmark-plus /> Save Query
+          <b-icon-bookmark-plus class="mr-1" /> Save Query
         </b-button>
         <b-button
           variant="outline-primary"
+          class="d-flex align-items-center"
           v-on:click="modals.viewSavedQueries.visible = true"
           v-if="modals.viewSavedQueries.savedQueries.length > 0"
         >
-          <b-icon-bookmarks /> View Saved Queries
+          <b-icon-bookmarks class="mr-1" /> View Saved Queries
         </b-button>
       </b-button-group>
       <b-button
         size="sm"
         variant="secondary"
-        class="ml-auto mr-1"
+        class="d-flex align-items-center ml-auto mr-1"
         v-on:click="resetToDefaultQuery"
       >
-        <b-icon-arrow-counterclockwise /> Reset to Default Query
+        <b-icon-arrow-counterclockwise class="mr-1" /> Reset to Default Query
       </b-button>
       <b-button
         size="sm"
         variant="success"
+        class="d-flex align-items-center"
         v-on:click="runQuery"
         v-if="runQuery"
       >
-        Run Query <b-icon-arrow-right-circle-fill />
+        Run Query <b-icon-arrow-right-circle-fill class="ml-1" />
       </b-button>
     </b-card-footer>
     <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.saveQuery.visible" title="Save Query">
