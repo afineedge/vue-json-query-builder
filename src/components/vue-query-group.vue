@@ -48,7 +48,7 @@
       <b-card
         no-body
         class="mt-2"
-        v-bind:key="item.$uuid"
+        v-bind:key="item._uuid"
         border-variant="primary"
         v-if="typeof item.condition === 'string'"
       >
@@ -71,7 +71,7 @@
           </VueQueryGroup>
         </b-card-body>
       </b-card>
-      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="item.$uuid" v-else class="mt-2">
+      <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="item._uuid" v-else class="mt-2">
         <template v-slot:ruleID="{rule, options}">
           <slot name="ruleID" :rule="rule" :options="options">
           </slot>
