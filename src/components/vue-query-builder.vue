@@ -19,8 +19,13 @@
       v-if="!isCollapsed"
     >
       <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options">
-        <template slot="rule">
-          <slot name="rule" />
+        <template v-slot:ruleID="{rule, options}">
+          <slot name="ruleID" :rule="rule" :options="options">
+          </slot>
+        </template>
+        <template v-slot:ruleOperator="{rule, options}">
+          <slot name="ruleOperator" :rule="rule" :options="options">
+          </slot>
         </template>
       </VueQueryGroup>
     </b-card-body>
@@ -187,10 +192,10 @@ export default {
 
     self.getSavedQueries();
 
-    if (typeof storedQueries === 'undefined'){
-      self.resetToDefaultQuery();
+    if (storedQueries){
+      self.currentQuery = JSON.parse(JSON.stringify(storedQueries));
     } else {
-      self.currentQuery = storedQueries;
+      self.resetToDefaultQuery();
     }
   },
   methods: {

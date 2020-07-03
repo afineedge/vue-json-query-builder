@@ -2,15 +2,25 @@
   <div id="app">
     <h1>Vue Query Builder</h1>
     <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder">
-      <template slot="rule">
-        <!-- <v-select
+      <template v-slot:ruleID="{rule, options}">
+        <v-select
           size="sm"
-          :options="ruleIDOptions"
+          :options="options"
           :reduce="item => item.id"
           label="name"
-          autocomplete="off"
+          autocomplete="new-password"
           v-model="rule.id"
-        /> -->
+        />
+      </template>
+      <template v-slot:ruleOperator="{rule, options}">
+        <v-select
+          size="sm"
+          :options="options"
+          :reduce="item => item.id"
+          label="name"
+          autocomplete="new-password"
+          v-model="rule.operator"
+        />
       </template>
     </VueQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>

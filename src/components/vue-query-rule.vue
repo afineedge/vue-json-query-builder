@@ -3,7 +3,7 @@
     <b-container fluid class="p-0">
       <b-row no-gutters>
         <b-col cols="4" class="vue-query-rule-id pr-1">
-          <slot name="rule" v-bind:rule="rule" v-bind:ruleIDOptions="ruleIDOptions">
+          <slot name="ruleID" :rule="rule" :options="ruleIDOptions">
             <b-form-select
               size="sm"
               :options="ruleIDOptions"
@@ -14,14 +14,15 @@
           </slot>
         </b-col>
         <b-col cols="3" class="vue-query-rule-operator pr-1">
-          <v-select
-            size="sm"
-            :options="operators"
-            :reduce="item => item.id"
-            label="name"
-            autocomplete="off"
-            v-model="rule.operator"
-          />
+          <slot name="ruleOperator" :rule="rule" :options="ruleOperatorOptions">
+            <b-form-select
+              size="sm"
+              :options="ruleOperatorOptions"
+              value-field="id"
+              text-field="name"
+              v-model="rule.operator"
+            />
+          </slot>
         </b-col>
         <b-col cols="5" class="vue-query-rule-value pr-1">
           <v-select
@@ -29,14 +30,14 @@
             :options="valueOptions"
             :reduce="item => item.id"
             label="name"
-            autocomplete="off"
+            autocomplete="new-password"
             v-model="rule.value"
             :multiple="multiple"
             v-if="params.type === 'select'"
           />
           <b-form-input
             size="sm"
-            autocomplete="off"
+            autocomplete="new-password"
             v-model="rule.value"
             v-else
           />
@@ -114,7 +115,7 @@ export default {
       const self = this;
       return self.rule.operator.includes('in');
     },
-    operators: function() {
+    ruleOperatorOptions: function() {
       const self = this;
       switch(self.params.type){
         case 'select':
@@ -190,17 +191,20 @@ export default {
   watch: {
     currentRuleID: function() {
       const self = this;
-      self.resetRuleValue();
+      Vue.nextTick(function(){
+        self.resetRuleValue();
+      });
     },
     currentRuleOperator: function(to, from) {
       const self = this;
-      if (to.includes('in') && !from.includes('in')){
-        self.resetRuleValue();
-      } else if (!to.includes('in') && from.includes('in')){
-        self.resetRuleValue();
-      }
-      return false;
-
+      Vue.nextTick(function(){
+        if (to.includes('in') && !from.includes('in')){
+          self.resetRuleValue();
+        } else if (!to.includes('in') && from.includes('in')){
+          self.resetRuleValue();
+        }
+        return false;
+      });
     }
   }
 }

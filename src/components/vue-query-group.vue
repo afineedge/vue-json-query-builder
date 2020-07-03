@@ -56,15 +56,25 @@
           class="p-2"
         >
           <VueQueryGroup v-bind:current-query="item" v-bind:options="options" v-bind:top-level="false">
-            <template slot="rule">
-              <slot name="rule" />
+            <template v-slot:ruleID="{rule, options}">
+              <slot name="ruleID" :rule="rule" :options="options">
+              </slot>
+            </template>
+            <template v-slot:ruleOperator="{rule, options}">
+              <slot name="ruleOperator" :rule="rule" :options="options">
+              </slot>
             </template>
           </VueQueryGroup>
         </b-card-body>
       </b-card>
       <VueQueryRule v-bind:rule="item" v-bind:options="options" v-bind:key="index" v-else>
-        <template slot="rule">
-          <slot name="rule" />
+        <template v-slot:ruleID="{rule, options}">
+          <slot name="ruleID" :rule="rule" :options="options">
+          </slot>
+        </template>
+        <template v-slot:ruleOperator="{rule, options}">
+          <slot name="ruleOperator" :rule="rule" :options="options">
+          </slot>
         </template>
       </VueQueryRule>
     </template>
