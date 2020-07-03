@@ -64,6 +64,10 @@
               <slot name="ruleOperator" :rule="rule" :options="options">
               </slot>
             </template>
+            <template v-slot:select="{rule, options, multiple}">
+              <slot name="select" :rule="rule" :options="options" :multiple="multiple">
+              </slot>
+            </template>
           </VueQueryGroup>
         </b-card-body>
       </b-card>
@@ -74,6 +78,10 @@
         </template>
         <template v-slot:ruleOperator="{rule, options}">
           <slot name="ruleOperator" :rule="rule" :options="options">
+          </slot>
+        </template>
+        <template v-slot:select="{rule, options, multiple}">
+          <slot name="select" :rule="rule" :options="options" :multiple="multiple">
           </slot>
         </template>
       </VueQueryRule>

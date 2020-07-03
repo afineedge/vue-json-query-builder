@@ -25,19 +25,18 @@
           </slot>
         </b-col>
         <b-col cols="5" class="vue-query-rule-value pr-1">
-          <v-select
-            size="sm"
-            :options="valueOptions"
-            :reduce="item => item.id"
-            label="name"
-            autocomplete="new-password"
-            v-model="rule.value"
-            :multiple="multiple"
-            v-if="params.type === 'select'"
-          />
+          <slot name="select" :rule="rule" :options="ruleValueOptions" :multiple="multiple" v-if="params.type === 'select'">
+            <b-form-select
+              size="sm"
+              :options="ruleValueOptions"
+              value-field="id"
+              text-field="name"
+              v-model="rule.value"
+              :multiple="multiple"
+            />
+          </slot>
           <b-form-input
             size="sm"
-            autocomplete="new-password"
             v-model="rule.value"
             v-else
           />
@@ -94,7 +93,7 @@ export default {
         }
       })
     },
-    valueOptions: function() {
+    ruleValueOptions: function() {
       const self = this;
       const options = self.params.options;
       if (typeof options === 'function'){

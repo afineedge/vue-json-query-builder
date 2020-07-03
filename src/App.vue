@@ -22,6 +22,17 @@
           v-model="rule.operator"
         />
       </template>
+      <template v-slot:select="{rule, options, multiple}">
+        <v-select
+          size="sm"
+          :options="options"
+          :reduce="item => item.id"
+          label="name"
+          autocomplete="new-password"
+          v-model="rule.value"
+          :multiple="multiple"
+        />
+      </template>
     </VueQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
     <b-card>
