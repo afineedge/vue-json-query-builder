@@ -74,6 +74,9 @@
         v-on:click="runQuery(currentQuery)"
         v-if="runQuery"
       >
+
+        <!-- TODO: Allow for loading icon as well as disable button when runQuery is in progress -->
+
         Run Query <b-icon-arrow-right-circle-fill class="ml-1" />
       </b-button>
     </b-card-footer>

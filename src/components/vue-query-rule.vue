@@ -35,6 +35,18 @@
               :multiple="multiple"
             />
           </slot>
+          <!-- TODO: Potentially just match type to slot name if provided and not ruleID or ruleOperator, but provide defaults for the following and return reasonable (and formattable) formatted data:
+            number (numbers, decimal, negative)
+            date
+            month
+            year
+
+            Any other formats can be added through slots, like:
+            phone
+            email
+            dollar
+            integer
+          -->
           <b-form-input
             size="sm"
             v-model="rule.value"
