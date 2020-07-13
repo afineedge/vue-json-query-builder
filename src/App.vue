@@ -15,7 +15,7 @@
     </VueQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
     <b-card>
-      <pre><code>{{ JSON.stringify(currentQuery, null, 2) }}</code></pre>
+      <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
     </b-card>
   </div>
 </template>
@@ -305,7 +305,10 @@ export default {
     }
 
     pre {
-      font-size: 10px;
+
+      code {
+        font-size: 12px;
+      }
     }
   }
 </style>
