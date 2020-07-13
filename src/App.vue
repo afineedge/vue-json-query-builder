@@ -67,10 +67,6 @@ export default {
       query: {
         condition: 'and',
         rules: [{
-          id: 'month',
-          operator: '=',
-          value: 1
-        }, {
           id: 'state',
           operator: 'in',
           value: ['MD', 'NJ']
@@ -95,10 +91,6 @@ export default {
         id: 'date',
         name: 'Date',
         type: 'date'
-      }, {
-        id: 'month',
-        name: 'Month',
-        type: 'month'
       }, {
         id: 'datetime',
         name: 'Datetime',

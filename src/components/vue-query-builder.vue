@@ -35,10 +35,6 @@
           <slot name="date" :rule="rule">
           </slot>
         </template>
-        <template v-slot:month="{rule}">
-          <slot name="month" :rule="rule">
-          </slot>
-        </template>
         <template v-slot:time="{rule}">
           <slot name="time" :rule="rule">
           </slot>

@@ -39,15 +39,6 @@
               :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
             />
           </slot>
-          <slot name="month" :rule="rule" v-else-if="params.type === 'month'">
-            <b-form-select
-              size="sm"
-              :options="months"
-              value-field="id"
-              text-field="name"
-              v-model="rule.value"
-            />
-          </slot>
           <slot name="time" :rule="rule" v-else-if="params.type === 'time'">
             <b-form-input
               size="sm"
@@ -113,45 +104,7 @@ export default {
     }
   },
   data: function() {
-    return {
-      months: [{
-        id: 1,
-        name: 'January'
-      }, {
-        id: 2,
-        name: 'February'
-      }, {
-        id: 3,
-        name: 'March'
-      }, {
-        id: 4,
-        name: 'April'
-      }, {
-        id: 5,
-        name: 'May'
-      }, {
-        id: 6,
-        name: 'June'
-      }, {
-        id: 7,
-        name: 'July'
-      }, {
-        id: 8,
-        name: 'August'
-      }, {
-        id: 9,
-        name: 'September'
-      }, {
-        id: 10,
-        name: 'October'
-      }, {
-        id: 11,
-        name: 'November'
-      }, {
-        id: 12,
-        name: 'December'
-      }, ]
-    }
+    return {}
   },
   computed: {
     params: function() {
