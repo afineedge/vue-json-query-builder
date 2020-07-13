@@ -202,11 +202,9 @@ export default {
             {id: '!in', name: 'is not (multiple)'}
           ];
         case 'number':
-        case 'dollar':
-        case 'integer':
         case 'date':
-        case 'time':
         case 'month':
+        case 'time':
           return [
             {id: '=',  name: 'is'},
             {id: '!=',  name: 'is not'},
