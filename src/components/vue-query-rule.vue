@@ -99,8 +99,6 @@
 
 <script>
 
-import Vue from 'vue';
-
 export default {
   name: 'VueQueryRule',
   components: {
@@ -269,20 +267,16 @@ export default {
   watch: {
     currentRuleID: function() {
       const self = this;
-      Vue.nextTick(function(){
-        self.resetRuleValue();
-      });
+      self.rule.operator = '=';
     },
     currentRuleOperator: function(to, from) {
       const self = this;
-      Vue.nextTick(function(){
-        if (to.includes('in') && !from.includes('in')){
-          self.resetRuleValue();
-        } else if (!to.includes('in') && from.includes('in')){
-          self.resetRuleValue();
-        }
-        return false;
-      });
+      if (to.includes('in') && !from.includes('in')){
+        self.resetRuleValue();
+      } else if (!to.includes('in') && from.includes('in')){
+        self.resetRuleValue();
+      }
+      return false;
     }
   }
 }

@@ -72,8 +72,8 @@
               <slot name="date" :rule="rule">
               </slot>
             </template>
-            <template v-slot:month="{rule, multiple}">
-              <slot name="month" :rule="rule" :multiple="multiple">
+            <template v-slot:month="{rule}">
+              <slot name="month" :rule="rule">
               </slot>
             </template>
             <template v-slot:time="{rule}">
@@ -112,8 +112,8 @@
           <slot name="date" :rule="rule">
           </slot>
         </template>
-        <template v-slot:month="{rule, multiple}">
-          <slot name="month" :rule="rule" :multiple="multiple">
+        <template v-slot:month="{rule}">
+          <slot name="month" :rule="rule">
           </slot>
         </template>
         <template v-slot:time="{rule}">

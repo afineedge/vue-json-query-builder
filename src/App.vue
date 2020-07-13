@@ -88,9 +88,25 @@ export default {
         }]
       },
       queryOptions: [{
+        id: 'price',
+        name: 'Price',
+        type: 'number'
+      }, {
+        id: 'date',
+        name: 'Date',
+        type: 'date'
+      }, {
         id: 'month',
         name: 'Month',
         type: 'month'
+      }, {
+        id: 'datetime',
+        name: 'Datetime',
+        type: 'datetime'
+      }, {
+        id: 'time',
+        name: 'Time',
+        type: 'time'
       }, {
         id: 'state',
         name: 'State',
@@ -300,9 +316,13 @@ export default {
           name: 'Zachary Appleton'
         }]
       }, {
-        id: 'price',
-        name: 'Price',
-        type: 'number'
+        id: 'phone',
+        name: 'Phone',
+        type: 'phone'
+      }, {
+        id: 'email',
+        name: 'Email',
+        type: 'email'
       }]
     }
   },
