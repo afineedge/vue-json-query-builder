@@ -266,6 +266,7 @@ export default {
     currentRuleID: function() {
       const self = this;
       self.rule.operator = '=';
+      self.resetRuleValue();
     },
     currentRuleOperator: function(to, from) {
       const self = this;
