@@ -328,7 +328,12 @@ export default {
   },
   methods: {
     runQuery: function(response){
-      alert("Your current query:\n" + JSON.stringify(response), null, 4);
+      return new Promise(function(resolve){
+        setTimeout(function(){
+          alert("Your current query:\n" + JSON.stringify(response), null, 4);
+          resolve();
+        }, 1000);
+      });
     }
   }
 }

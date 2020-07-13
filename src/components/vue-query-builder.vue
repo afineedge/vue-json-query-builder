@@ -95,13 +95,16 @@
         size="sm"
         variant="success"
         class="d-flex align-items-center"
-        v-on:click="runQuery(currentQuery)"
+        v-on:click="runCurrentQuery(currentQuery)"
         v-if="runQuery"
+        v-bind:disabled="runQueryDisabled"
       >
 
         <!-- TODO: Allow for loading icon as well as disable button when runQuery is in progress -->
 
-        Run Query <b-icon-arrow-right-circle-fill class="ml-1" />
+        Run Query&nbsp;
+        <b-icon icon="circle-fill" animation="throb" class="ml-1" v-if="loading" />
+        <b-icon-arrow-right-circle-fill class="ml-1" v-else />
       </b-button>
     </b-card-footer>
     <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.saveQuery.visible" title="Save Query">
@@ -195,6 +198,7 @@ export default {
       currentQuery: {},
       isCollapsed: false,
       storedQueries: '',
+      loading: false,
       modals: {
         saveQuery: {
           visible: false,
@@ -219,6 +223,35 @@ export default {
     saveQueryDisabled: function() {
       const self = this;
       return self.modals.saveQuery.queryName.length < 2;
+    },
+    runQueryDisabled: function() {
+      const self = this;
+      return self.loading || !self.areAllQueriesValid;
+    },
+    areAllQueriesValid: function() {
+      const self = this;
+
+      function checkIfEntityAndChildrenAreValid(entity) {
+        const keys = Object.keys(entity);
+        let response = true;
+
+        if (keys.includes('value')){
+          if (entity.value.toString().length === 0){
+            response = false;
+          }
+        } else if (keys.includes('rules')){
+          for (let i = 0; i < entity.rules.length; i++){
+            const rule = entity.rules[i];
+            if (!checkIfEntityAndChildrenAreValid(rule)){
+              response = false;
+            }
+          }
+        }
+
+        return response;
+      }
+
+      return checkIfEntityAndChildrenAreValid(self.currentQuery);
     }
   },
   created: function() {
@@ -234,6 +267,13 @@ export default {
     }
   },
   methods: {
+    runCurrentQuery: function(){
+      const self = this;
+      self.loading = true;
+      Promise.resolve(self.runQuery(self.currentQuery)).then(function(){
+        self.loading = false;
+      })
+    },
     addUUIDsToCurrentQuery: function() {
       const self = this;
 
