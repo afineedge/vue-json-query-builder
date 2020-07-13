@@ -2,15 +2,36 @@
   <div id="app">
     <h1>Vue Query Builder</h1>
     <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder">
-      <template slot="rule">
-        <!-- <v-select
+      <template v-slot:ruleID="{rule, options}">
+        <v-select
           size="sm"
-          :options="ruleIDOptions"
+          :options="options"
           :reduce="item => item.id"
           label="name"
-          autocomplete="off"
+          autocomplete="new-password"
           v-model="rule.id"
-        /> -->
+        />
+      </template>
+      <template v-slot:ruleOperator="{rule, options}">
+        <v-select
+          size="sm"
+          :options="options"
+          :reduce="item => item.id"
+          label="name"
+          autocomplete="new-password"
+          v-model="rule.operator"
+        />
+      </template>
+      <template v-slot:select="{rule, options, multiple}">
+        <v-select
+          size="sm"
+          :options="options"
+          :reduce="item => item.id"
+          label="name"
+          autocomplete="new-password"
+          v-model="rule.value"
+          :multiple="multiple"
+        />
       </template>
     </VueQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
@@ -22,6 +43,10 @@
 
 <script>
 import Vue from 'vue';
+
+import vSelect from 'vue-select';
+Vue.component('v-select', vSelect);
+import "vue-select/src/scss/vue-select.scss";
 
 import '@/scss/custom.scss';
 
@@ -282,9 +307,8 @@ export default {
     }
   },
   methods: {
-    runQuery: function(){
-      const self = this;
-      alert("Your current query:\n" + JSON.stringify(self.currentQuery), null, 4);
+    runQuery: function(response){
+      alert("Your current query:\n" + JSON.stringify(response), null, 4);
     }
   }
 }

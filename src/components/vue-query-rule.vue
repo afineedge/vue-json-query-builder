@@ -1,9 +1,9 @@
 <template>
-  <div class="vue-query-rule d-flex mb-1">
+  <div class="vue-query-rule d-flex">
     <b-container fluid class="p-0">
       <b-row no-gutters>
         <b-col cols="4" class="vue-query-rule-id pr-1">
-          <slot name="rule" v-bind:rule="rule" v-bind:ruleIDOptions="ruleIDOptions">
+          <slot name="ruleID" :rule="rule" :options="ruleIDOptions">
             <b-form-select
               size="sm"
               :options="ruleIDOptions"
@@ -14,29 +14,41 @@
           </slot>
         </b-col>
         <b-col cols="3" class="vue-query-rule-operator pr-1">
-          <v-select
-            size="sm"
-            :options="operators"
-            :reduce="item => item.id"
-            label="name"
-            autocomplete="off"
-            v-model="rule.operator"
-          />
+          <slot name="ruleOperator" :rule="rule" :options="ruleOperatorOptions">
+            <b-form-select
+              size="sm"
+              :options="ruleOperatorOptions"
+              value-field="id"
+              text-field="name"
+              v-model="rule.operator"
+            />
+          </slot>
         </b-col>
         <b-col cols="5" class="vue-query-rule-value pr-1">
-          <v-select
-            size="sm"
-            :options="valueOptions"
-            :reduce="item => item.id"
-            label="name"
-            autocomplete="off"
-            v-model="rule.value"
-            :multiple="multiple"
-            v-if="params.type === 'select'"
-          />
+          <slot name="select" :rule="rule" :options="ruleValueOptions" :multiple="multiple" v-if="params.type === 'select'">
+            <b-form-select
+              size="sm"
+              :options="ruleValueOptions"
+              value-field="id"
+              text-field="name"
+              v-model="rule.value"
+              :multiple="multiple"
+            />
+          </slot>
+          <!-- TODO: Potentially just match type to slot name if provided and not ruleID or ruleOperator, but provide defaults for the following and return reasonable (and formattable) formatted data:
+            number (numbers, decimal, negative)
+            date
+            month
+            year
+
+            Any other formats can be added through slots, like:
+            phone
+            email
+            dollar
+            integer
+          -->
           <b-form-input
             size="sm"
-            autocomplete="off"
             v-model="rule.value"
             v-else
           />
@@ -56,8 +68,6 @@
 <script>
 
 import Vue from 'vue';
-import vSelect from 'vue-select';
-Vue.component('v-select', vSelect);
 
 export default {
   name: 'VueQueryRule',
@@ -93,7 +103,7 @@ export default {
         }
       })
     },
-    valueOptions: function() {
+    ruleValueOptions: function() {
       const self = this;
       const options = self.params.options;
       if (typeof options === 'function'){
@@ -114,7 +124,7 @@ export default {
       const self = this;
       return self.rule.operator.includes('in');
     },
-    operators: function() {
+    ruleOperatorOptions: function() {
       const self = this;
       switch(self.params.type){
         case 'select':
@@ -190,17 +200,20 @@ export default {
   watch: {
     currentRuleID: function() {
       const self = this;
-      self.resetRuleValue();
+      Vue.nextTick(function(){
+        self.resetRuleValue();
+      });
     },
     currentRuleOperator: function(to, from) {
       const self = this;
-      if (to.includes('in') && !from.includes('in')){
-        self.resetRuleValue();
-      } else if (!to.includes('in') && from.includes('in')){
-        self.resetRuleValue();
-      }
-      return false;
-
+      Vue.nextTick(function(){
+        if (to.includes('in') && !from.includes('in')){
+          self.resetRuleValue();
+        } else if (!to.includes('in') && from.includes('in')){
+          self.resetRuleValue();
+        }
+        return false;
+      });
     }
   }
 }

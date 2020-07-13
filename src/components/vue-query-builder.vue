@@ -19,8 +19,17 @@
       v-if="!isCollapsed"
     >
       <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options">
-        <template slot="rule">
-          <slot name="rule" />
+        <template v-slot:ruleID="{rule, options}">
+          <slot name="ruleID" :rule="rule" :options="options">
+          </slot>
+        </template>
+        <template v-slot:ruleOperator="{rule, options}">
+          <slot name="ruleOperator" :rule="rule" :options="options">
+          </slot>
+        </template>
+        <template v-slot:select="{rule, options, multiple}">
+          <slot name="select" :rule="rule" :options="options" :multiple="multiple">
+          </slot>
         </template>
       </VueQueryGroup>
     </b-card-body>
@@ -36,33 +45,39 @@
       >
         <b-button
           variant="outline-primary"
+          class="d-flex align-items-center"
           v-on:click="modals.saveQuery.visible = true"
         >
-          <b-icon-bookmark-plus /> Save Query
+          <b-icon-bookmark-plus class="mr-1" /> Save Query
         </b-button>
         <b-button
           variant="outline-primary"
+          class="d-flex align-items-center"
           v-on:click="modals.viewSavedQueries.visible = true"
           v-if="modals.viewSavedQueries.savedQueries.length > 0"
         >
-          <b-icon-bookmarks /> View Saved Queries
+          <b-icon-bookmarks class="mr-1" /> View Saved Queries
         </b-button>
       </b-button-group>
       <b-button
         size="sm"
         variant="secondary"
-        class="ml-auto mr-1"
+        class="d-flex align-items-center ml-auto mr-1"
         v-on:click="resetToDefaultQuery"
       >
-        <b-icon-arrow-counterclockwise /> Reset to Default Query
+        <b-icon-arrow-counterclockwise class="mr-1" /> Reset to Default Query
       </b-button>
       <b-button
         size="sm"
         variant="success"
-        v-on:click="runQuery"
+        class="d-flex align-items-center"
+        v-on:click="runQuery(currentQuery)"
         v-if="runQuery"
       >
-        Run Query <b-icon-arrow-right-circle-fill />
+
+        <!-- TODO: Allow for loading icon as well as disable button when runQuery is in progress -->
+
+        Run Query <b-icon-arrow-right-circle-fill class="ml-1" />
       </b-button>
     </b-card-footer>
     <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.saveQuery.visible" title="Save Query">
@@ -115,6 +130,8 @@
 
 import Vue from 'vue';
 Vue.use(require('vue-moment'));
+
+import { v4 as uuidv4 } from 'uuid';
 
 import VueQueryGroup from '@/components/vue-query-group.vue';
 
@@ -182,23 +199,44 @@ export default {
   },
   created: function() {
     const self = this;
+
+    self.getAndStoreSavedQueries();
     
     const storedQueries = self.getStoredQueries();
-
-    self.getSavedQueries();
-
-    if (typeof storedQueries === 'undefined'){
-      self.resetToDefaultQuery();
+    if (storedQueries){
+      self.currentQuery = JSON.parse(JSON.stringify(storedQueries));
     } else {
-      self.currentQuery = storedQueries;
+      self.resetToDefaultQuery();
     }
   },
   methods: {
+    addUUIDsToCurrentQuery: function() {
+      const self = this;
+
+      function addUUIDsToQueryAndChildren(query){
+        const keys = Object.keys(query);
+        Object.defineProperty(query, '_uuid', {
+          enumerable: false,
+          value: uuidv4()
+        })
+
+        if (keys.includes('rules')){
+          for (let i = 0; i < query.rules.length; i++){
+            const rule = query.rules[i];
+            addUUIDsToQueryAndChildren(rule);
+          }
+        }
+      }
+
+      addUUIDsToQueryAndChildren(self.currentQuery);
+    },
     resetToDefaultQuery: function() {
       const self = this;
+
       self.currentQuery = JSON.parse(JSON.stringify(self.query));
+      self.addUUIDsToCurrentQuery();
     },
-    getSavedQueries: function() {
+    getAndStoreSavedQueries: function() {
       const self = this;
       const savedQueries = JSON.parse(localStorage.getItem(self.savedQueriesLocation));
       if (Array.isArray(savedQueries)){
@@ -233,6 +271,7 @@ export default {
     loadSavedQuery: function(query) {
       const self = this;
       self.currentQuery = JSON.parse(JSON.stringify(query));
+      self.addUUIDsToCurrentQuery();
       self.modals.viewSavedQueries.visible = false;
     },
     saveQueries: function() {

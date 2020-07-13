@@ -10,13 +10,3 @@ $theme-colors: (
 @import '../../node_modules/bootstrap/scss/bootstrap';
 // BootstrapVue and its default variables
 @import '../../node_modules/bootstrap-vue/src/index.scss';
-
-
-// V-Select
-$vs-controls-size: .6;
-
-@import "vue-select/src/scss/vue-select.scss";
-
-.vs__open-indicator {
-	margin-top: 2px;
-}
