@@ -67,9 +67,9 @@ export default {
       query: {
         condition: 'and',
         rules: [{
-          id: 'year',
+          id: 'month',
           operator: '=',
-          value: '2019'
+          value: 1
         }, {
           id: 'state',
           operator: 'in',
@@ -88,9 +88,9 @@ export default {
         }]
       },
       queryOptions: [{
-        id: 'year',
-        name: 'Year',
-        type: 'year'
+        id: 'month',
+        name: 'Month',
+        type: 'month'
       }, {
         id: 'state',
         name: 'State',
@@ -302,7 +302,7 @@ export default {
       }, {
         id: 'price',
         name: 'Price',
-        type: 'dollar'
+        type: 'number'
       }]
     }
   },

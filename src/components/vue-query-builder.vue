@@ -27,8 +27,32 @@
           <slot name="ruleOperator" :rule="rule" :options="options">
           </slot>
         </template>
+        <template v-slot:number="{rule}">
+          <slot name="number" :rule="rule">
+          </slot>
+        </template>
+        <template v-slot:date="{rule}">
+          <slot name="date" :rule="rule">
+          </slot>
+        </template>
+        <template v-slot:month="{rule, multiple}">
+          <slot name="month" :rule="rule" :multiple="multiple">
+          </slot>
+        </template>
+        <template v-slot:time="{rule}">
+          <slot name="time" :rule="rule">
+          </slot>
+        </template>
         <template v-slot:select="{rule, options, multiple}">
           <slot name="select" :rule="rule" :options="options" :multiple="multiple">
+          </slot>
+        </template>
+        <template v-slot:phone="{rule}">
+          <slot name="phone" :rule="rule">
+          </slot>
+        </template>
+        <template v-slot:email="{rule}">
+          <slot name="email" :rule="rule">
           </slot>
         </template>
       </VueQueryGroup>

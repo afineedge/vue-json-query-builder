@@ -25,7 +25,37 @@
           </slot>
         </b-col>
         <b-col cols="5" class="vue-query-rule-value pr-1">
-          <slot name="select" :rule="rule" :options="ruleValueOptions" :multiple="multiple" v-if="params.type === 'select'">
+          <slot name="number" :rule="rule" v-if="params.type === 'number'">
+            <b-form-input
+              size="sm"
+              v-model="rule.value"
+              type="number"
+            />
+          </slot>
+          <slot name="date" :rule="rule" v-else-if="params.type === 'date'">
+            <b-form-datepicker
+              size="sm"
+              v-model="rule.value"
+              :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
+            />
+          </slot>
+          <slot name="month" :rule="rule" v-else-if="params.type === 'month'">
+            <b-form-select
+              size="sm"
+              :options="months"
+              value-field="id"
+              text-field="name"
+              v-model="rule.value"
+            />
+          </slot>
+          <slot name="time" :rule="rule" v-else-if="params.type === 'time'">
+            <b-form-input
+              size="sm"
+              v-model="rule.value"
+              type="time"
+            />
+          </slot>
+          <slot name="select" :rule="rule" :options="ruleValueOptions" :multiple="multiple" v-else-if="params.type === 'select'">
             <b-form-select
               size="sm"
               :options="ruleValueOptions"
@@ -35,18 +65,20 @@
               :multiple="multiple"
             />
           </slot>
-          <!-- TODO: Potentially just match type to slot name if provided and not ruleID or ruleOperator, but provide defaults for the following and return reasonable (and formattable) formatted data:
-            number (numbers, decimal, negative)
-            date
-            month
-            year
-
-            Any other formats can be added through slots, like:
-            phone
-            email
-            dollar
-            integer
-          -->
+          <slot name="phone" :rule="rule" v-else-if="params.type === 'phone'">
+            <b-form-input
+              size="sm"
+              v-model="rule.value"
+              type="tel"
+            />
+          </slot>
+          <slot name="email" :rule="rule" v-else-if="params.type === 'email'">
+            <b-form-input
+              size="sm"
+              v-model="rule.value"
+              type="email"
+            />
+          </slot>
           <b-form-input
             size="sm"
             v-model="rule.value"
@@ -84,6 +116,43 @@ export default {
   },
   data: function() {
     return {
+      months: [{
+        id: 1,
+        name: 'January'
+      }, {
+        id: 2,
+        name: 'February'
+      }, {
+        id: 3,
+        name: 'March'
+      }, {
+        id: 4,
+        name: 'April'
+      }, {
+        id: 5,
+        name: 'May'
+      }, {
+        id: 6,
+        name: 'June'
+      }, {
+        id: 7,
+        name: 'July'
+      }, {
+        id: 8,
+        name: 'August'
+      }, {
+        id: 9,
+        name: 'September'
+      }, {
+        id: 10,
+        name: 'October'
+      }, {
+        id: 11,
+        name: 'November'
+      }, {
+        id: 12,
+        name: 'December'
+      }, ]
     }
   },
   computed: {
@@ -138,8 +207,8 @@ export default {
         case 'dollar':
         case 'integer':
         case 'date':
+        case 'time':
         case 'month':
-        case 'year':
           return [
             {id: '=',  name: 'is'},
             {id: '!=',  name: 'is not'},
