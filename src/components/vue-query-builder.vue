@@ -407,16 +407,8 @@ VueQueryBuilder
 Standard setup:
 
 ```vue
-
   <template>
-    <div>
-      <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery"
-      />
-      <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
-      <b-card>
-        <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
-      </b-card>
-    </div>
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
   </template>
 
   <script>
@@ -429,7 +421,6 @@ Standard setup:
     export default {
       data() {
         return {
-          currentQuery: {},
           query: {
             condition: 'and',
             rules: [{
@@ -495,6 +486,158 @@ Standard setup:
       }
     }
   </script>
+```
 
+Emit current query to parent
+```vue
+  <template>
+    <div>
+      <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
+      <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
+      <b-card>
+        <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
+      </b-card>
+    </div>
+  </template>
+
+  <script>
+    import Vue from 'vue';
+    import '@/scss/custom.scss';
+    import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
+    Vue.use(IconsPlugin);
+
+    export default {
+      data() {
+        return {
+          currentQuery: {},
+          query: {
+            condition: 'and',
+            rules: [{
+              id: 'price',
+              operator: '<=',
+              value: '80000'
+            }]
+          },
+          queryOptions: [{
+            id: 'price',
+            name: 'Price',
+            type: 'number'
+          }, {
+            id: 'date',
+            name: 'Date',
+            type: 'date'
+          }, {
+            id: 'time',
+            name: 'Time',
+            type: 'time'
+          }]
+        }
+      },
+      methods: {
+      }
+    }
+  </script>
+```
+
+Add button to execute query
+```vue
+  <template>
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
+  </template>
+
+  <script>
+    import Vue from 'vue';
+    import '@/scss/custom.scss';
+    import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
+    Vue.use(IconsPlugin);
+
+    export default {
+      data() {
+        return {
+          query: {
+            condition: 'and',
+            rules: [{
+              id: 'price',
+              operator: '<=',
+              value: '80000'
+            }]
+          },
+          queryOptions: [{
+            id: 'price',
+            name: 'Price',
+            type: 'number'
+          }, {
+            id: 'date',
+            name: 'Date',
+            type: 'date'
+          }, {
+            id: 'time',
+            name: 'Time',
+            type: 'time'
+          }]
+        }
+      },
+      methods: {
+        viewQuery: function(query) {
+          alert(JSON.stringify(query));
+        }
+      }
+    }
+  </script>
+```
+
+Add button to execute async query
+```vue
+  <template>
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
+  </template>
+
+  <script>
+    import Vue from 'vue';
+    import '@/scss/custom.scss';
+    import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
+    Vue.use(IconsPlugin);
+
+    export default {
+      data() {
+        return {
+          query: {
+            condition: 'and',
+            rules: [{
+              id: 'price',
+              operator: '<=',
+              value: '80000'
+            }]
+          },
+          queryOptions: [{
+            id: 'price',
+            name: 'Price',
+            type: 'number'
+          }, {
+            id: 'date',
+            name: 'Date',
+            type: 'date'
+          }, {
+            id: 'time',
+            name: 'Time',
+            type: 'time'
+          }]
+        }
+      },
+      methods: {
+        viewQuery: function(query) {
+          return new Promise(function(resolve){
+            setTimeout(function(){
+              alert(JSON.stringify(query));
+              resolve();
+            }, 1000);
+          });
+        }
+      }
+    }
+  </script>
 ```
 </docs>
