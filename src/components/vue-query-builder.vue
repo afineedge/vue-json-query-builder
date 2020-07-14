@@ -8,15 +8,15 @@
       header-border-variant="primary"
       header-text-variant="white"
       header-class="json-query-builder-header p-2 d-flex align-items-center"
-      v-on:click="isCollapsed = !isCollapsed"
+      v-on:click="isVisible = !isVisible"
     >
       <small class="mr-auto">Query Builder</small>
-      <b-icon-caret-up-fill v-if="isCollapsed" />
+      <b-icon-caret-up-fill v-if="!isVisible" />
       <b-icon-caret-down-fill v-else />
     </b-card-header>
     <b-card-body
       class="p-2"
-      v-if="!isCollapsed"
+      v-if="isVisible"
     >
       <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options">
         <template v-slot:ruleID="{rule, options}">
@@ -56,7 +56,7 @@
     <b-card-footer
       footer-border-variant="primary"
       footer-class="json-query-builder-footer d-flex p-2"
-      v-if="!isCollapsed"
+      v-if="isVisible"
     >
       <b-button-group
         class="mr-1"
@@ -184,12 +184,17 @@ export default {
       type: [Function, Object],
       required: false,
       default: null
+    },
+    visible: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   },
   data: function() {
     return {
       currentQuery: {},
-      isCollapsed: false,
+      isVisible: this.visible,
       storedQueries: '',
       loading: false,
       modals: {
@@ -383,6 +388,7 @@ export default {
 
   .json-query-builder {
     font-size: 12px;
+    user-select: none;
 
     * {
       font-size: 12px !important;
@@ -592,6 +598,59 @@ Add button to execute async query
 ```vue
   <template>
     <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
+  </template>
+
+  <script>
+    import Vue from 'vue';
+    import '@/scss/custom.scss';
+    import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
+    Vue.use(IconsPlugin);
+
+    export default {
+      data() {
+        return {
+          query: {
+            condition: 'and',
+            rules: [{
+              id: 'price',
+              operator: '<=',
+              value: '80000'
+            }]
+          },
+          queryOptions: [{
+            id: 'price',
+            name: 'Price',
+            type: 'number'
+          }, {
+            id: 'date',
+            name: 'Date',
+            type: 'date'
+          }, {
+            id: 'time',
+            name: 'Time',
+            type: 'time'
+          }]
+        }
+      },
+      methods: {
+        viewQuery: function(query) {
+          return new Promise(function(resolve){
+            setTimeout(function(){
+              alert(JSON.stringify(query));
+              resolve();
+            }, 1000);
+          });
+        }
+      }
+    }
+  </script>
+```
+
+Collapse query builder on load
+```vue
+  <template>
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" v-bind:visible="false" />
   </template>
 
   <script>
