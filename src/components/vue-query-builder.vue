@@ -1,13 +1,13 @@
 <template>
   <b-card no-body
-    class="json-query-builder"
+    class="vue-query-builder"
     border-variant="primary"
   >
     <b-card-header
       header-bg-variant="primary"
       header-border-variant="primary"
       header-text-variant="white"
-      header-class="json-query-builder-header p-2 d-flex align-items-center"
+      header-class="vue-query-builder-header p-2 d-flex align-items-center"
       v-on:click="isVisible = !isVisible"
     >
       <small class="mr-auto">Query Builder</small>
@@ -91,7 +91,7 @@
     </b-card-body>
     <b-card-footer
       footer-border-variant="primary"
-      footer-class="json-query-builder-footer d-flex p-2"
+      footer-class="vue-query-builder-footer d-flex p-2"
       v-if="isVisible"
     >
       <b-button-group
@@ -441,12 +441,16 @@ export default {
 
 <style lang="scss">
 
-  .json-query-builder {
+  .vue-query-builder {
     font-size: 12px;
     user-select: none;
 
     * {
       font-size: 12px !important;
+    }
+
+    .vue-query-builder-header {
+      cursor: pointer;
     }
   }
 
