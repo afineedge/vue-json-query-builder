@@ -2,6 +2,7 @@
   <b-card no-body
     class="vue-query-builder"
     border-variant="primary"
+    v-bind:style="{'pointer-events': pointerEvents}"
   >
     <b-card-header
       header-bg-variant="primary"
@@ -280,6 +281,10 @@ export default {
     runQueryDisabled: function() {
       const self = this;
       return self.loading || !self.areAllQueriesValid;
+    },
+    pointerEvents: function() {
+      const self = this;
+      return self.loading ? 'none' : 'all';
     },
     areAllQueriesValid: function() {
       const self = this;
@@ -709,7 +714,7 @@ Add button to execute async query
 Collapse query builder on load
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" v-bind:visible="false" />
+    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:visible="false" />
   </template>
 
   <script>
@@ -743,16 +748,6 @@ Collapse query builder on load
             name: 'Time',
             type: 'time'
           }]
-        }
-      },
-      methods: {
-        viewQuery: function(query) {
-          return new Promise(function(resolve){
-            setTimeout(function(){
-              alert(JSON.stringify(query));
-              resolve();
-            }, 1000);
-          });
         }
       }
     }
