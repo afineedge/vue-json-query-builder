@@ -161,13 +161,23 @@ export default {
     VueQueryGroup
   },
   props: {
-    query: {
+    /**
+      * The initial query to load into VueQueryBuilder on load.
+    */
+     query: {
       type: Object,
       required: true
     },
+    /**
+      * The options to define the parameters of each rule.
+    */
     options: {
       type: Array
     },
+    /**
+      * @model
+      * Returns current query to parent component.
+    */
     value: {
       type: Object,
       required: false,
@@ -175,16 +185,25 @@ export default {
         return {}
       }
     },
+    /**
+      * The location in localStorage in which to store current query.
+    */
     storage: {
       type: String,
       required: false,
       default: ''
     },
+    /**
+      * The function to run upon click of "Run Query" button, returning current query.
+    */
     runQuery: {
       type: [Function, Object],
       required: false,
       default: null
     },
+    /**
+      * Determines whether VueQueryBuilder instance is collapsed or expanded upon load.
+    */
     visible: {
       type: Boolean,
       required: false,
@@ -499,7 +518,7 @@ Emit current query to parent
   <template>
     <div>
       <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
-      <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
+      <strong class="mt-3 mb-1 d-block">Emitted Query:</strong>
       <b-card>
         <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
       </b-card>

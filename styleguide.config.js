@@ -3,5 +3,6 @@ module.exports = {
 	title: 'Vue Query Builder',
 	components: 'src/components/vue-query-builder.vue',
 	exampleMode: 'collapse',
-	showSidebar: false
+	showSidebar: false,
+	copyCodeButton: true
 }
