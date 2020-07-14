@@ -400,11 +400,11 @@ export default {
 
 
 <docs>
-This button is amazing, use it responsibly.
+VueQueryBuilder
 
 ## Examples
 
-Orange button:
+Standard setup:
 
 ```vue
 
@@ -450,10 +450,6 @@ Orange button:
             id: 'date',
             name: 'Date',
             type: 'date'
-          }, {
-            id: 'datetime',
-            name: 'Datetime',
-            type: 'datetime'
           }, {
             id: 'time',
             name: 'Time',
