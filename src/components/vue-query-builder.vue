@@ -20,34 +20,70 @@
     >
       <VueQueryGroup v-bind:current-query="currentQuery" v-bind:options="options">
         <template v-slot:ruleID="{rule, options}">
+          <!--
+            @slot The user interface element to replace ruleID selector
+            @binding {object} rule The options to be applied to this rule selector
+            @binding {array} options The list of options to apply to new ruleID selector. Each object in array must include `id` and `name` attributes
+          -->
           <slot name="ruleID" :rule="rule" :options="options">
           </slot>
         </template>
         <template v-slot:ruleOperator="{rule, options}">
+          <!--
+            @slot The user interface element to replace ruleOperator selector
+            @binding {object} rule The options to be applied to this operator selector
+            @binding {array} options list of options to apply to new ruleOperator selector. Each object in array must include `id` and `name` attributes.
+          -->
           <slot name="ruleOperator" :rule="rule" :options="options">
           </slot>
         </template>
         <template v-slot:number="{rule}">
+          <!--
+            @slot The user interface element to replace number input
+            @binding {object} rule The rule to be affected by this input
+          -->
           <slot name="number" :rule="rule">
           </slot>
         </template>
         <template v-slot:date="{rule}">
+          <!--
+            @slot The user interface element to replace date input
+            @binding {object} rule The rule to be affected by this input
+          -->
           <slot name="date" :rule="rule">
           </slot>
         </template>
         <template v-slot:time="{rule}">
+          <!--
+            @slot The user interface element to replace time input
+            @binding {object} rule The rule to be affected by this input
+          -->
           <slot name="time" :rule="rule">
           </slot>
         </template>
         <template v-slot:select="{rule, options, multiple}">
+          <!--
+            @slot The user interface element to replace select
+            @binding {object} rule The rule to be affected by this select
+            @binding {array} options list of options to apply to this select. Each object in array must include `id` and `name` attributes.
+            @binding {boolean} multiple Determines whether select allows for singular or multiple selections.
+          -->
           <slot name="select" :rule="rule" :options="options" :multiple="multiple">
           </slot>
         </template>
         <template v-slot:phone="{rule}">
+          <!--
+            @slot The user interface element to replace phone input
+            @binding {object} rule The rule to be affected by this input
+          -->
           <slot name="phone" :rule="rule">
           </slot>
         </template>
         <template v-slot:email="{rule}">
+          <!--
+            @slot The user interface element to replace email input
+            @binding {object} rule The rule to be affected by this input
+          -->
           <slot name="email" :rule="rule">
           </slot>
         </template>
