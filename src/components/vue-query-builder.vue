@@ -41,7 +41,7 @@
         <template v-slot:number="{rule}">
           <!--
             @slot The user interface element to replace number input
-            @binding {object} rule The rule to be affected by this input
+            @binding {object} rule The rule to be connected to this input
           -->
           <slot name="number" :rule="rule">
           </slot>
@@ -49,7 +49,7 @@
         <template v-slot:date="{rule}">
           <!--
             @slot The user interface element to replace date input
-            @binding {object} rule The rule to be affected by this input
+            @binding {object} rule The rule to be connected to this input
           -->
           <slot name="date" :rule="rule">
           </slot>
@@ -57,7 +57,7 @@
         <template v-slot:time="{rule}">
           <!--
             @slot The user interface element to replace time input
-            @binding {object} rule The rule to be affected by this input
+            @binding {object} rule The rule to be connected to this input
           -->
           <slot name="time" :rule="rule">
           </slot>
@@ -65,7 +65,7 @@
         <template v-slot:select="{rule, options, multiple}">
           <!--
             @slot The user interface element to replace select
-            @binding {object} rule The rule to be affected by this select
+            @binding {object} rule The rule to be connected to this select
             @binding {array} options list of options to apply to this select. Each object in array must include `id` and `name` attributes.
             @binding {boolean} multiple Determines whether select allows for singular or multiple selections.
           -->
@@ -75,7 +75,7 @@
         <template v-slot:phone="{rule}">
           <!--
             @slot The user interface element to replace phone input
-            @binding {object} rule The rule to be affected by this input
+            @binding {object} rule The rule to be connected to this input
           -->
           <slot name="phone" :rule="rule">
           </slot>
@@ -83,7 +83,7 @@
         <template v-slot:email="{rule}">
           <!--
             @slot The user interface element to replace email input
-            @binding {object} rule The rule to be affected by this input
+            @binding {object} rule The rule to be connected to this input
           -->
           <slot name="email" :rule="rule">
           </slot>
