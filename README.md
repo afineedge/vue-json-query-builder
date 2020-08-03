@@ -20,5 +20,5 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Documentation
+[How to use Vue Query Builder](https://cli.vuejs.org/config/)

@@ -192,6 +192,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import VueQueryGroup from '@/components/vue-query-group.vue';
 
+/**
+  * VueQueryBuilder is a Vue-based UI component that allows the user to generate queries in JSON format.
+  * @displayName Vue Query Builder
+*/
+
 export default {
   name: 'VueQueryBuilder',
   components: {
@@ -470,7 +475,6 @@ export default {
 
 
 <docs>
-VueQueryBuilder
 
 ## Examples
 
