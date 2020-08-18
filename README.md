@@ -21,4 +21,4 @@ npm run lint
 ```
 
 ### Documentation
-[How to use Vue Query Builder](https://cli.vuejs.org/config/)
+[How to use Vue JSON Query Builder](https://afineedge.github.io/vue-json-query-builder/)
