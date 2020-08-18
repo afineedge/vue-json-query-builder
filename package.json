@@ -6,16 +6,19 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build ./src/components/vue-query-builder.vue",
     "test:unit": "vue-cli-service test:unit",
+    "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
     "styleguide": "vue-cli-service styleguidist",
     "styleguide:build": "vue-cli-service styleguidist:build"
   },
   "dependencies": {
+    "babel-plugin-istanbul": "^6.0.0",
     "bootstrap": "^4.5.0",
     "bootstrap-vue": "^2.15.0",
     "core-js": "^3.6.5",
     "moment": "^2.27.0",
     "node-sass": "^4.14.1",
+    "nyc": "^15.1.0",
     "sass-loader": "^8.0.2",
     "uuid": "^8.2.0",
     "vue": "^2.6.11",
@@ -64,5 +67,42 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "nyc": {
+    "all" : true,
+    "check-coverage": true,
+    "per-file": true,
+    "skip-full": true,
+    "include": [
+      "src/components/**"
+    ],
+    "extension": [
+      ".vue"
+    ],
+    "reporter":[
+      "text",
+      "text-summary",
+      "html"
+    ],
+    "report-dir": "./tests/coverage",
+    "temp-dir": "./tests/.nyc_output",
+    "watermarks": {
+      "functions": [
+        80,
+        95
+      ],
+      "lines": [
+        80,
+        95
+      ],
+      "branches": [
+        80,
+        95
+      ],
+      "statements": [
+        80,
+        95
+      ]
+    }
+  }
 }

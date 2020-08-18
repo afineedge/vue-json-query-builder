@@ -102,14 +102,14 @@
       >
         <b-button
           variant="outline-primary"
-          class="d-flex align-items-center"
+          class="vue-query-builder-save-query d-flex align-items-center"
           v-on:click="modals.saveQuery.visible = true"
         >
           <b-icon-bookmark-plus class="mr-1" /> Save Query
         </b-button>
         <b-button
           variant="outline-primary"
-          class="d-flex align-items-center"
+          class="vue-query-builder-view-saved-queries d-flex align-items-center"
           v-on:click="modals.viewSavedQueries.visible = true"
           v-if="modals.viewSavedQueries.savedQueries.length > 0"
         >
@@ -119,7 +119,7 @@
       <b-button
         size="sm"
         variant="secondary"
-        class="d-flex align-items-center ml-auto mr-1"
+        class="vue-query-builder-reset-to-default-query d-flex align-items-center ml-auto mr-1"
         v-on:click="resetToDefaultQuery"
       >
         <b-icon-arrow-counterclockwise class="mr-1" /> Reset to Default Query
@@ -127,7 +127,7 @@
       <b-button
         size="sm"
         variant="success"
-        class="d-flex align-items-center"
+        class="vue-query-builder-run-query d-flex align-items-center"
         v-on:click="runCurrentQuery(currentQuery)"
         v-if="runQuery"
         v-bind:disabled="runQueryDisabled"
@@ -299,7 +299,7 @@ export default {
         let response = true;
 
         if (keys.includes('value')){
-          if (entity.value.toString().length === 0){
+          if (entity.value === null || entity.value.toString().length === 0){
             response = false;
           }
         } else if (keys.includes('rules')){
@@ -332,8 +332,8 @@ export default {
   methods: {
     runCurrentQuery: function(){
       const self = this;
-      self.loading = true;
       if (self.runQuery){
+        self.loading = true;
         Promise.resolve(self.runQuery(self.currentQuery)).then(function(){
           self.loading = false;
         })

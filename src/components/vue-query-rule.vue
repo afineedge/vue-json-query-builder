@@ -25,45 +25,45 @@
           </slot>
         </b-col>
         <b-col cols="5" class="vue-query-rule-value pr-1">
-          <slot name="number" :rule="rule" v-if="params.type === 'number'">
+          <slot name="number" :rule="rule" v-if="ruleParams.type === 'number'">
             <b-form-input
               size="sm"
               v-model="rule.value"
               type="number"
             />
           </slot>
-          <slot name="date" :rule="rule" v-else-if="params.type === 'date'">
+          <slot name="date" :rule="rule" v-else-if="ruleParams.type === 'date'">
             <b-form-datepicker
               size="sm"
               v-model="rule.value"
               :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
             />
           </slot>
-          <slot name="time" :rule="rule" v-else-if="params.type === 'time'">
+          <slot name="time" :rule="rule" v-else-if="ruleParams.type === 'time'">
             <b-form-input
               size="sm"
               v-model="rule.value"
               type="time"
             />
           </slot>
-          <slot name="select" :rule="rule" :options="ruleValueOptions" :multiple="multiple" v-else-if="params.type === 'select'">
+          <slot name="select" :rule="rule" :options="ruleParams.options" :multiple="multiple" v-else-if="ruleParams.type === 'select'">
             <b-form-select
               size="sm"
-              :options="ruleValueOptions"
+              :options="ruleParams.options"
               value-field="id"
               text-field="name"
               v-model="rule.value"
               :multiple="multiple"
             />
           </slot>
-          <slot name="phone" :rule="rule" v-else-if="params.type === 'phone'">
+          <slot name="phone" :rule="rule" v-else-if="ruleParams.type === 'phone'">
             <b-form-input
               size="sm"
               v-model="rule.value"
               type="tel"
             />
           </slot>
-          <slot name="email" :rule="rule" v-else-if="params.type === 'email'">
+          <slot name="email" :rule="rule" v-else-if="ruleParams.type === 'email'">
             <b-form-input
               size="sm"
               v-model="rule.value"
@@ -82,6 +82,7 @@
       size="sm"
       variant="danger"
       v-on:click="deleteRule"
+      class="vue-query-builder-delete-rule"
     >
       <b-icon-trash-fill />
     </b-button>
@@ -107,7 +108,7 @@ export default {
     return {}
   },
   computed: {
-    params: function() {
+    ruleParams: function() {
       const self = this;
       return self.options.find(function(option){
         return option.id === self.rule.id
@@ -123,15 +124,6 @@ export default {
         }
       })
     },
-    ruleValueOptions: function() {
-      const self = this;
-      const options = self.params.options;
-      if (typeof options === 'function'){
-        return options();
-      }
-
-      return options;
-    },
     currentRuleID: function(){
       const self = this;
       return self.rule.id;
@@ -146,7 +138,7 @@ export default {
     },
     ruleOperatorOptions: function() {
       const self = this;
-      switch(self.params.type){
+      switch(self.ruleParams.type){
         case 'select':
           return [
             {id: '=',  name: 'is'},

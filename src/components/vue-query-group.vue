@@ -8,12 +8,14 @@
         <b-button
           v-on:click="currentQuery.condition = 'and'"
           v-bind:variant="andConditionButtonVariant"
+          class="vue-query-builder-and"
         >
           AND
         </b-button>
         <b-button
           v-on:click="currentQuery.condition = 'or'"
           v-bind:variant="orConditionButtonVariant"
+          class="vue-query-builder-or"
         >
           OR
         </b-button>
@@ -26,19 +28,21 @@
           v-on:click="deleteGroup"
           variant="danger"
           v-if="level > 0"
+          class="vue-query-builder-delete-group"
         >
           <b-icon-trash-fill /> Delete Group
         </b-button>
         <b-button
           v-on:click="addRule"
           variant="outline-primary"
+          class="vue-query-builder-add-rule"
         >
           <b-icon-file-plus /> Add Rule
         </b-button>
         <b-button
           v-on:click="addGroup"
           variant="outline-primary"
-          class="border-left-0"
+          class="vue-query-builder-add-group border-left-0"
         >
           <b-icon-folder-plus /> Add Group
         </b-button>
