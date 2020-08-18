@@ -4,5 +4,6 @@ module.exports = {
 	components: 'src/components/vue-json-query-builder.vue',
 	exampleMode: 'collapse',
 	showSidebar: false,
-	copyCodeButton: true
+	copyCodeButton: true,
+	styleguideDir: './docs'
 }
