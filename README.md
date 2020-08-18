@@ -1,4 +1,4 @@
-# vue-query-builder
+# vue-json-query-builder
 
 ## Project setup
 ```

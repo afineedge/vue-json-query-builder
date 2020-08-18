@@ -82,7 +82,7 @@
       size="sm"
       variant="danger"
       v-on:click="deleteRule"
-      class="vue-query-builder-delete-rule"
+      class="vue-json-query-builder-delete-rule"
     >
       <b-icon-trash-fill />
     </b-button>

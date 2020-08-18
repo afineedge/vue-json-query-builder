@@ -1,6 +1,6 @@
 <template>
   <b-card no-body
-    class="vue-query-builder"
+    class="vue-json-query-builder"
     border-variant="primary"
     v-bind:style="{'pointer-events': pointerEvents}"
   >
@@ -8,7 +8,7 @@
       header-bg-variant="primary"
       header-border-variant="primary"
       header-text-variant="white"
-      header-class="vue-query-builder-header p-2 d-flex align-items-center"
+      header-class="vue-json-query-builder-header p-2 d-flex align-items-center"
       v-on:click="isVisible = !isVisible"
     >
       <small class="mr-auto">Query Builder</small>
@@ -92,7 +92,7 @@
     </b-card-body>
     <b-card-footer
       footer-border-variant="primary"
-      footer-class="vue-query-builder-footer d-flex p-2"
+      footer-class="vue-json-query-builder-footer d-flex p-2"
       v-if="isVisible"
     >
       <b-button-group
@@ -102,14 +102,14 @@
       >
         <b-button
           variant="outline-primary"
-          class="vue-query-builder-save-query d-flex align-items-center"
+          class="vue-json-query-builder-save-query d-flex align-items-center"
           v-on:click="modals.saveQuery.visible = true"
         >
           <b-icon-bookmark-plus class="mr-1" /> Save Query
         </b-button>
         <b-button
           variant="outline-primary"
-          class="vue-query-builder-view-saved-queries d-flex align-items-center"
+          class="vue-json-query-builder-view-saved-queries d-flex align-items-center"
           v-on:click="modals.viewSavedQueries.visible = true"
           v-if="modals.viewSavedQueries.savedQueries.length > 0"
         >
@@ -119,7 +119,7 @@
       <b-button
         size="sm"
         variant="secondary"
-        class="vue-query-builder-reset-to-default-query d-flex align-items-center ml-auto mr-1"
+        class="vue-json-query-builder-reset-to-default-query d-flex align-items-center ml-auto mr-1"
         v-on:click="resetToDefaultQuery"
       >
         <b-icon-arrow-counterclockwise class="mr-1" /> Reset to Default Query
@@ -127,7 +127,7 @@
       <b-button
         size="sm"
         variant="success"
-        class="vue-query-builder-run-query d-flex align-items-center"
+        class="vue-json-query-builder-run-query d-flex align-items-center"
         v-on:click="runCurrentQuery(currentQuery)"
         v-if="runQuery"
         v-bind:disabled="runQueryDisabled"
@@ -193,18 +193,18 @@ import { v4 as uuidv4 } from 'uuid';
 import VueQueryGroup from '@/components/vue-query-group.vue';
 
 /**
-  * VueQueryBuilder is a Vue-based UI component that allows the user to generate queries in JSON format.
-  * @displayName Vue Query Builder
+  * VueJSONQueryBuilder is a Vue-based UI component that allows the user to generate queries in JSON format.
+  * @displayName Vue JSON Query Builder
 */
 
 export default {
-  name: 'VueQueryBuilder',
+  name: 'VueJSONQueryBuilder',
   components: {
     VueQueryGroup
   },
   props: {
     /**
-      * The initial query to load into VueQueryBuilder on load.
+      * The initial query to load into VueJSONQueryBuilder on load.
     */
      query: {
       type: Object,
@@ -244,7 +244,7 @@ export default {
       default: null
     },
     /**
-      * Determines whether VueQueryBuilder instance is collapsed or expanded upon load.
+      * Determines whether VueJSONQueryBuilder instance is collapsed or expanded upon load.
     */
     visible: {
       type: Boolean,
@@ -273,11 +273,11 @@ export default {
   computed: {
     savedQueriesLocation: function(){
       const self = this;
-      return 'VueQueryBuilder_saved_' + self.storage;
+      return 'VueJSONQueryBuilder_saved_' + self.storage;
     },
     storedQueriesLocation: function(){
       const self = this;
-      return 'VueQueryBuilder_stored_' + self.storage;
+      return 'VueJSONQueryBuilder_stored_' + self.storage;
     },
     saveQueryDisabled: function() {
       const self = this;
@@ -451,7 +451,7 @@ export default {
 
 <style lang="scss">
 
-  .vue-query-builder {
+  .vue-json-query-builder {
     font-size: 12px;
     user-select: none;
 
@@ -459,7 +459,7 @@ export default {
       font-size: 12px !important;
     }
 
-    .vue-query-builder-header {
+    .vue-json-query-builder-header {
       cursor: pointer;
     }
   }
@@ -482,7 +482,7 @@ Standard setup:
 
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" />
   </template>
 
   <script>
@@ -566,7 +566,7 @@ Emit current query to parent
 ```vue
   <template>
     <div>
-      <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
+      <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" />
       <strong class="mt-3 mb-1 d-block">Emitted Query:</strong>
       <b-card>
         <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
@@ -617,7 +617,7 @@ Emit current query to parent
 Add button to execute query
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
   </template>
 
   <script>
@@ -665,7 +665,7 @@ Add button to execute query
 Add button to execute async query
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:run-query="viewQuery" />
   </template>
 
   <script>
@@ -718,7 +718,7 @@ Add button to execute async query
 Collapse query builder on load
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:visible="false" />
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-bind:visible="false" />
   </template>
 
   <script>
@@ -761,7 +761,7 @@ Collapse query builder on load
 Replace rule ID selector, rule operator selector, or value inputs by type by using slots
 ```vue
   <template>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions">
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions">
       <template v-slot:ruleID="{rule, options}">
         <v-select
           size="sm"
@@ -793,7 +793,7 @@ Replace rule ID selector, rule operator selector, or value inputs by type by usi
           :multiple="multiple"
         />
       </template>
-    </VueQueryBuilder>
+    </VueJSONQueryBuilder>
   </template>
 
   <script>

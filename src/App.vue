@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <h1>Vue Query Builder</h1>
-    <VueQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-query-builder">
+    <h1>Vue JSON Query Builder</h1>
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-json-query-builder">
       <template v-slot:ruleID="{rule, options}">
         <v-select
           size="sm"
@@ -33,7 +33,7 @@
           :multiple="multiple"
         />
       </template>
-    </VueQueryBuilder>
+    </VueJSONQueryBuilder>
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
     <b-card>
       <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
@@ -54,12 +54,12 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-import VueQueryBuilder from '@/components/vue-query-builder.vue';
+import VueJSONQueryBuilder from '@/components/vue-json-query-builder.vue';
 
 export default {
   name: 'App',
   components: {
-    VueQueryBuilder
+    VueJSONQueryBuilder
   },
   data: function() {
     return {

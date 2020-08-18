@@ -1,3 +1,3 @@
 module.exports = {
-  publicPath: '/vue-query-builder/'
+  publicPath: '/vue-json-query-builder/'
 }

@@ -1,9 +1,9 @@
 {
-  "name": "vue-query-builder",
+  "name": "vue-json-query-builder",
   "version": "0.1.1",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build ./src/components/vue-query-builder.vue",
+    "build": "vue-cli-service build ./src/components/vue-json-query-builder.vue",
     "test:unit": "vue-cli-service test:unit",
     "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
@@ -111,7 +111,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/afineedge/vue-query-builder.git"
+    "url": "git+https://github.com/afineedge/vue-json-query-builder.git"
   },
   "keywords": [
     "Vue",
@@ -121,7 +121,7 @@
   "author": "Eric Edgerton",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/afineedge/vue-query-builder/issues"
+    "url": "https://github.com/afineedge/vue-json-query-builder/issues"
   },
-  "homepage": "https://github.com/afineedge/vue-query-builder#readme"
+  "homepage": "https://github.com/afineedge/vue-json-query-builder#readme"
 }
