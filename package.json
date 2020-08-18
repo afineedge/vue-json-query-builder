@@ -69,7 +69,7 @@
     "not dead"
   ],
   "nyc": {
-    "all" : true,
+    "all": true,
     "check-coverage": true,
     "per-file": true,
     "skip-full": true,
@@ -79,7 +79,7 @@
     "extension": [
       ".vue"
     ],
-    "reporter":[
+    "reporter": [
       "text",
       "text-summary",
       "html"
@@ -104,5 +104,25 @@
         95
       ]
     }
-  }
+  },
+  "description": "## Project setup ``` npm install ```",
+  "main": "babel.config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afineedge/vue-query-builder.git"
+  },
+  "keywords": [
+    "Vue",
+    "query",
+    "JSON"
+  ],
+  "author": "Eric Edgerton",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/afineedge/vue-query-builder/issues"
+  },
+  "homepage": "https://github.com/afineedge/vue-query-builder#readme"
 }
