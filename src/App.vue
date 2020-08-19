@@ -1,39 +1,7 @@
 <template>
   <div id="app">
     <h1>Vue JSON Query Builder</h1>
-    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-json-query-builder">
-      <template v-slot:ruleID="{rule, options}">
-        <v-select
-          size="sm"
-          :options="options"
-          :reduce="item => item.id"
-          label="name"
-          autocomplete="new-password"
-          v-model="rule.id"
-        />
-      </template>
-      <template v-slot:ruleOperator="{rule, options}">
-        <v-select
-          size="sm"
-          :options="options"
-          :reduce="item => item.id"
-          label="name"
-          autocomplete="new-password"
-          v-model="rule.operator"
-        />
-      </template>
-      <template v-slot:select="{rule, options, multiple}">
-        <v-select
-          size="sm"
-          :options="options"
-          :reduce="item => item.id"
-          label="name"
-          autocomplete="new-password"
-          v-model="rule.value"
-          :multiple="multiple"
-        />
-      </template>
-    </VueJSONQueryBuilder>
+    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" v-bind:run-query="runQuery" storage="test-vue-json-query-builder" />
     <strong class="mt-3 mb-1 d-block">Generated Query:</strong>
     <b-card>
       <pre><code>{{ JSON.stringify(currentQuery, null, 4) }}</code></pre>
