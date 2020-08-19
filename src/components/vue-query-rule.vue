@@ -215,9 +215,7 @@ export default {
     },
     currentRuleOperator: function(to, from) {
       const self = this;
-      if (to.includes('in') && !from.includes('in')){
-        self.resetRuleValue();
-      } else if (!to.includes('in') && from.includes('in')){
+      if (to.includes('in') !== from.includes('in')){
         self.resetRuleValue();
       }
       return false;

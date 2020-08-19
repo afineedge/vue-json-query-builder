@@ -105,14 +105,14 @@ describe('ParentComponentForRule.vue', () => {
 			}
 		});
 
-		const deleteRuleButton = wrapper.find('.vue-query-builder-delete-rule');
+		const deleteRuleButton = wrapper.find('.vue-json-query-builder-delete-rule');
 
 		deleteRuleButton.trigger('click');
 
 		expect(wrapper.vm.currentQuery.rules.length).to.equal(0);
 	});
 
-	it('resets rule operator when invalid with current operator parameters', () => {
+	it('resets rule value when invalid with current operator parameters', () => {
 		const data = {
 			currentQuery: {
 				rules: [{
@@ -157,15 +157,12 @@ describe('ParentComponentForRule.vue', () => {
 			}
 		});
 
+		data.currentQuery.rules[0].operator = 'in';
+
 		const ruleComponent = wrapper.findComponent(VueQueryRule).vm;
 
-		wrapper.vm.currentQuery.rules[0].operator = 'in';
-
 		Vue.nextTick(function(){
-			Vue.nextTick(function(){
-				console.log(ruleComponent.rule);
-				expect(Array.isArray(ruleComponent.rule.value)).to.equal(true);
-			})
+			expect(Array.isArray(ruleComponent.rule.value)).to.equal(true);
 		})
 	});
 });

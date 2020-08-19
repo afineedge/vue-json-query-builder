@@ -8,9 +8,9 @@ Vue.use(IconsPlugin);
 
 import { expect } from 'chai'
 import { mount } from '@vue/test-utils'
-import VueQueryBuilder from '@/components/vue-query-builder.vue'
+import VueJSONQueryBuilder from '@/components/vue-json-query-builder.vue'
 
-describe('VueQueryBuilder.vue', () => {
+describe('VueJSONQueryBuilder.vue', () => {
 	it('renders query when passed', () => {
 		const data = {
 			currentQuery: {},
@@ -34,14 +34,14 @@ describe('VueQueryBuilder.vue', () => {
 			hasQueryBeenRun = true;
 		};
 
-		const wrapper = mount(VueQueryBuilder, {
+		const wrapper = mount(VueJSONQueryBuilder, {
 			propsData: { 
 				query: data.query,
 				options: data.queryOptions,
 				runQuery: runQuery
 			}
 		});
-		const runQueryButton = wrapper.find('.vue-query-builder-run-query');
+		const runQueryButton = wrapper.find('.vue-json-query-builder-run-query');
 
 		runQueryButton.trigger('click');
 

@@ -22,5 +22,5 @@ pnpm-debug.log*
 *.sw?
 
 # Test output
-/tests/.nyc_output
-/tests/coverage
+/tests/.nyc_output/*
+/tests/coverage/*
