@@ -8,7 +8,8 @@
     "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
     "styleguide": "vue-cli-service styleguidist",
-    "styleguide:build": "vue-cli-service styleguidist:build"
+    "styleguide:build": "vue-cli-service styleguidist:build",
+    "publish": "npm publish"
   },
   "dependencies": {
     "babel-plugin-istanbul": "^6.0.0", 
