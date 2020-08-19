@@ -11,7 +11,7 @@
     "styleguide:build": "vue-cli-service styleguidist:build"
   },
   "dependencies": {
-    "babel-plugin-istanbul": "^6.0.0",
+    "babel-plugin-istanbul": "^6.0.0", 
     "bootstrap": "^4.5.0",
     "bootstrap-vue": "^2.15.0",
     "core-js": "^3.6.5",
@@ -36,9 +36,6 @@
     "sass-loader": "^8.0.2",
     "vue-cli-plugin-styleguidist": "^4.26.0",
     "vue-template-compiler": "^2.6.11"
-  },
-  "gitHooks": {
-    "pre-commit": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js && vue-cli-service styleguidist:build"
   },
   "eslintConfig": {
     "root": true,
