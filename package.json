@@ -12,27 +12,28 @@
     "publish": "npm publish"
   },
   "dependencies": {
-    "babel-plugin-istanbul": "^6.0.0", 
-    "bootstrap": "^4.5.0",
-    "bootstrap-vue": "^2.15.0",
     "core-js": "^3.6.5",
-    "uuid": "^8.2.0",
-    "vue": "^2.6.11"
+    "uuid": "^8.2.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.4.0",
-    "@vue/cli-plugin-eslint": "^4.4.0",
-    "@vue/cli-plugin-unit-mocha": "^4.4.6",
-    "@vue/cli-service": "^4.4.0",
+    "@vue/cli-plugin-babel": "^4.5.4",
+    "@vue/cli-plugin-eslint": "^4.5.4",
+    "@vue/cli-plugin-unit-mocha": "^4.5.4",
+    "@vue/cli-service": "^4.5.4",
     "@vue/test-utils": "^1.0.3",
     "babel-eslint": "^10.1.0",
+    "babel-plugin-istanbul": "^6.0.0",
+    "bootstrap": "^4.5.0",
+    "bootstrap-vue": "^2.15.0",
     "chai": "^4.1.2",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "node-sass": "^4.14.1",
     "nyc": "^15.1.0",
     "sass-loader": "^8.0.2",
-    "vue-cli-plugin-styleguidist": "^4.26.0",
+    "vue": "^2.6.11",
+    "vue-cli-plugin-styleguidist": "^4.31.0",
+    "vue-cli-plugin-webpack-bundle-analyzer": "~2.0.0",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
