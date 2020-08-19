@@ -166,7 +166,7 @@
         :fields="['name', 'createdDate', 'actions']"
       >
         <template v-slot:cell(createdDate)="row">
-          {{ row | moment("dddd, MMMM Do, YYYY")}}
+          {{ row.toLocaleDateString()}}
         </template>
         <template v-slot:cell(actions)="row">
           <b-button-group size="sm">
@@ -184,10 +184,6 @@
 </template>
 
 <script>
-
-import Vue from 'vue';
-Vue.use(require('vue-moment'));
-
 import { v4 as uuidv4 } from 'uuid';
 
 import VueQueryGroup from '@/vue-query-group.vue';

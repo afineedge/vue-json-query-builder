@@ -1,3 +1,8 @@
+/* const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin; */
+
 module.exports = {
-  publicPath: '/vue-json-query-builder/'
+  publicPath: '',
+  /* configureWebpack: {
+    plugins: [new BundleAnalyzerPlugin()]
+  } */
 }
