@@ -37,6 +37,9 @@
     "vue-cli-plugin-styleguidist": "^4.26.0",
     "vue-template-compiler": "^2.6.11"
   },
+  "gitHooks": {
+    "pre-commit": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js && vue-cli-service styleguidist:build"
+  },
   "eslintConfig": {
     "root": true,
     "env": {
