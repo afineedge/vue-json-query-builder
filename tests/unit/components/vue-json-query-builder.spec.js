@@ -8,7 +8,7 @@ Vue.use(IconsPlugin);
 
 import { expect } from 'chai'
 import { mount } from '@vue/test-utils'
-import VueJSONQueryBuilder from '@/components/vue-json-query-builder.vue'
+import VueJSONQueryBuilder from '@/vue-json-query-builder.vue'
 
 describe('VueJSONQueryBuilder.vue', () => {
 	it('renders query when passed', () => {

@@ -190,7 +190,7 @@ Vue.use(require('vue-moment'));
 
 import { v4 as uuidv4 } from 'uuid';
 
-import VueQueryGroup from '@/components/vue-query-group.vue';
+import VueQueryGroup from '@/vue-query-group.vue';
 
 /**
   * VueJSONQueryBuilder is a Vue-based UI component that allows the user to generate queries in JSON format.
@@ -761,7 +761,10 @@ Collapse query builder on load
 Replace rule ID selector, rule operator selector, or value inputs by type by using slots
 ```vue
   <template>
-    <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions">
+    <VueJSONQueryBuilder
+      v-bind:query="query"
+      v-bind:options="queryOptions"
+    >
       <template v-slot:ruleID="{rule, options}">
         <v-select
           size="sm"

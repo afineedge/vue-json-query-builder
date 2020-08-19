@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import VueQueryRule from '@/components/vue-query-rule.vue'
+import VueQueryRule from '@/vue-query-rule.vue'
 
 export default {
   name: 'ParentComponentForRule',

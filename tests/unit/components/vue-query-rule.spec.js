@@ -9,7 +9,7 @@ Vue.use(IconsPlugin);
 import { expect } from 'chai'
 import { mount } from '@vue/test-utils'
 import ParentComponentForRule from './ParentComponentForRule.vue'
-import VueQueryRule from '@/components/vue-query-rule.vue'
+import VueQueryRule from '@/vue-query-rule.vue'
 
 describe('ParentComponentForRule.vue', () => {
 	it('renders with mounted component', () => {

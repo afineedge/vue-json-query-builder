@@ -1,9 +1,9 @@
 {
   "name": "vue-json-query-builder",
-  "version": "0.1.2",
+  "version": "0.1.11",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build ./src/components/vue-json-query-builder.vue",
+    "build": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js",
     "test:unit": "vue-cli-service test:unit",
     "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
@@ -105,7 +105,7 @@
     }
   },
   "description": "## Project setup ``` npm install ```",
-  "main": "babel.config.js",
+  "main": "dist/vue-json-query-builder.common.js",
   "directories": {
     "test": "tests"
   },

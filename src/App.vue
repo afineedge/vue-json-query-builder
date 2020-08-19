@@ -54,7 +54,7 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-import VueJSONQueryBuilder from '@/components/vue-json-query-builder.vue';
+import VueJSONQueryBuilder from '@/vue-json-query-builder.vue';
 
 export default {
   name: 'App',
