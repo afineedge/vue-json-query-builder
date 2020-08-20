@@ -1,6 +1,6 @@
 # vue-json-query-builder
+vue-json-query-builder is a Vue UI component to assist users in creating complex queries in JSON format.
 
-> vue-json-query-builder is a Vue UI component to assist users in creating complex queries in JSON format.
 ![Demo Screenshot](./public/assets/standard_example.png)
 
 ### Documentation
