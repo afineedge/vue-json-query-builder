@@ -56,10 +56,6 @@ export default {
         name: 'Date',
         type: 'date'
       }, {
-        id: 'datetime',
-        name: 'Datetime',
-        type: 'datetime'
-      }, {
         id: 'time',
         name: 'Time',
         type: 'time'
