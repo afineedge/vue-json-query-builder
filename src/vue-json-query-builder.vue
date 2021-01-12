@@ -166,7 +166,7 @@
         :fields="['name', 'createdDate', 'actions']"
       >
         <template v-slot:cell(createdDate)="row">
-          {{ row.toLocaleDateString()}}
+          {{ row.item.createdDate.toLocaleDateString()}}
         </template>
         <template v-slot:cell(actions)="row">
           <b-button-group size="sm">
