@@ -144,7 +144,7 @@ export default {
             {id: '=',  name: 'is'},
             {id: '!=',  name: 'is not'},
             {id: 'in', name: 'is (multiple)'},
-            {id: '!in', name: 'is not (multiple)'}
+            {id: 'not in', name: 'is not (multiple)'}
           ];
         case 'number':
         case 'date':
@@ -181,7 +181,7 @@ export default {
             {id: '=',  name: 'is'},
             {id: '!=',  name: 'is not'},
             {id: 'in', name: 'is (multiple)'},
-            {id: '!in', name: 'is not (multiple)'},
+            {id: 'not in', name: 'is not (multiple)'},
             {id: '()',  name: 'includes'},
             {id: '!()',  name: 'does not include'},
             {id: '(',   name: 'starts with'},
