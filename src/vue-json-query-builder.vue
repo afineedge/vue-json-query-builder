@@ -1,5 +1,6 @@
 <template>
-  <b-card no-body
+  <b-card
+    no-body
     class="vue-json-query-builder"
     border-variant="primary"
     v-bind:style="{'pointer-events': loading ? 'none' : 'all'}"
@@ -12,6 +13,7 @@
       v-on:click="isVisible = !isVisible"
     >
       <small class="mr-auto">Query Builder</small>
+      
       <b-icon-caret-up-fill v-if="!isVisible" />
       <b-icon-caret-down-fill v-else />
     </b-card-header>
@@ -138,13 +140,19 @@
         <b-icon-arrow-right-circle-fill class="ml-1" v-else />
       </b-button>
     </b-card-footer>
-    <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.saveQuery.visible" title="Save Query">
+    <b-modal
+      header-bg-variant="primary"
+      header-text-variant="white"
+      v-model="modals.saveQuery.visible"
+      title="Save Query"
+    >
       <p>
-        Please enter the name for your new query below.
+        Please name your new query.
       </p>
       <b-form-input
         size="sm"
         v-model="modals.saveQuery.queryName"
+        autofocus
       />
       <template v-slot:modal-footer>
         <b-button
@@ -161,7 +169,13 @@
         </b-button>
       </template>
     </b-modal>
-    <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.viewSavedQueries.visible" title="Saved Queries" hide-footer>
+    <b-modal
+      header-bg-variant="primary"
+      header-text-variant="white"
+      v-model="modals.viewSavedQueries.visible"
+      title="Saved Queries"
+      hide-footer
+    >
       <b-table
         :items="savedQueries"
         :fields="['name', 'createdDate', 'actions']"
@@ -400,6 +414,9 @@ export default {
       }).then(function(response) {
         if (response === true){
           self.savedQueries.splice(self.savedQueries.indexOf(query), 1);
+          if (self.savedQueries.length === 0){
+            self.modals.viewSavedQueries.visible = false;
+          }
         } else {
           return false;
         }
