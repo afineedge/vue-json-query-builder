@@ -387,7 +387,7 @@ export default {
       savedQueries.push({
         name: self.modals.saveQuery.queryName,
         createdDate: new Date(),
-        query: self.currentQuery
+        query: JSON.parse(JSON.stringify(self.currentQuery))
       });
       self.saveQueries();
       self.modals.saveQuery.visible = false;
