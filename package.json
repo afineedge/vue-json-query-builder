@@ -3,7 +3,8 @@
   "version": "0.1.32",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js",
+    "build:dist": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js",
+    "build:demo": "vue-cli-service build --dest demo",
     "test:unit": "vue-cli-service test:unit",
     "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
