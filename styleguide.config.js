@@ -5,5 +5,6 @@ module.exports = {
 	exampleMode: 'collapse',
 	showSidebar: false,
 	copyCodeButton: true,
-	styleguideDir: './docs'
+	styleguideDir: './docs',
+	serverPort: 7000
 }

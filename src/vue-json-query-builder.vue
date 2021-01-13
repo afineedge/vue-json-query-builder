@@ -104,6 +104,7 @@
           variant="outline-primary"
           class="vue-json-query-builder-save-query d-flex align-items-center"
           v-on:click="modals.saveQuery.visible = true"
+          v-bind:disabled="runQueryDisabled"
         >
           <b-icon-bookmark-plus class="mr-1" /> Save Query
         </b-button>
@@ -750,6 +751,62 @@ Collapse query builder on load
             type: 'time'
           }]
         }
+      }
+    }
+  </script>
+```
+
+Save queries
+```vue
+  <template>
+    <div>
+      <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" storage="example" />
+      <strong class="mt-3 mb-1 d-block">Emitted Query:</strong>
+      <b-card>
+        <pre>
+          <code>
+            {{ JSON.stringify(currentQuery, null, 4) }}<br />
+          </code>
+        </pre>
+      </b-card>
+    </div>
+  </template>
+
+  <script>
+    import Vue from 'vue';
+    import '@/scss/custom.scss';
+    import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
+    Vue.use(IconsPlugin);
+
+    export default {
+      data() {
+        return {
+          currentQuery: {},
+          query: {
+            condition: 'and',
+            rules: [{
+              id: 'price',
+              operator: '<=',
+              value: '80000'
+            }]
+          },
+          queryOptions: [{
+            id: 'price',
+            name: 'Price',
+            type: 'number'
+          }, {
+            id: 'date',
+            name: 'Date',
+            type: 'date'
+          }, {
+            id: 'time',
+            name: 'Time',
+            type: 'time'
+          }]
+        }
+      },
+      methods: {
       }
     }
   </script>
