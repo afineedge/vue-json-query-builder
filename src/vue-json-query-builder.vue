@@ -2,7 +2,7 @@
   <b-card no-body
     class="vue-json-query-builder"
     border-variant="primary"
-    v-bind:style="{'pointer-events': pointerEvents}"
+    v-bind:style="{'pointer-events': loading ? 'none' : 'all'}"
   >
     <b-card-header
       header-bg-variant="primary"
@@ -155,7 +155,7 @@
         <b-button
           variant="success"
           v-on:click="saveQuery"
-          v-bind:disabled="saveQueryDisabled"
+          v-bind:disabled="modals.saveQuery.queryName.length < 2"
         >
           <b-icon-cloud-upload /> Save Query
         </b-button>
@@ -268,21 +268,6 @@ export default {
     }
   },
   computed: {
-    savedQueriesLocation: function(){
-      const self = this;
-      if (self.storage){
-        return 'VueJSONQueryBuilder_saved_' + self.storage;
-      }
-      return false;
-    },
-    storedQueriesLocation: function(){
-      const self = this;
-      return 'VueJSONQueryBuilder_stored_' + self.storage;
-    },
-    saveQueryDisabled: function() {
-      const self = this;
-      return self.modals.saveQuery.queryName.length < 2;
-    },
     runQueryDisabled: function() {
       const self = this;
       return self.loading || !self.areAllQueriesValid;
@@ -290,10 +275,6 @@ export default {
     savedQueries: function() {
       const self = this;
       return self.modals.viewSavedQueries.savedQueries;
-    },
-    pointerEvents: function() {
-      const self = this;
-      return self.loading ? 'none' : 'all';
     },
     areAllQueriesValid: function() {
       const self = this;
