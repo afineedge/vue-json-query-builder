@@ -111,7 +111,7 @@
           variant="outline-primary"
           class="vue-json-query-builder-view-saved-queries d-flex align-items-center"
           v-on:click="modals.viewSavedQueries.visible = true"
-          v-if="modals.viewSavedQueries.savedQueries.length > 0"
+          v-if="savedQueries.length > 0"
         >
           <b-icon-bookmarks class="mr-1" /> View Saved Queries
         </b-button>
@@ -162,7 +162,7 @@
     </b-modal>
     <b-modal header-bg-variant="primary" header-text-variant="white" v-model="modals.viewSavedQueries.visible" title="Saved Queries" hide-footer>
       <b-table
-        :items="modals.viewSavedQueries.savedQueries"
+        :items="savedQueries"
         :fields="['name', 'createdDate', 'actions']"
       >
         <template v-slot:cell(createdDate)="row">
@@ -252,7 +252,7 @@ export default {
     return {
       currentQuery: {},
       isVisible: this.visible,
-      storedQueries: '',
+      storedQueries: this.getStoredQueries(),
       loading: false,
       modals: {
         saveQuery: {
@@ -261,7 +261,7 @@ export default {
         },
         viewSavedQueries: {
           visible: false,
-          savedQueries: []
+          savedQueries: this.getSavedQueries()
         }
       }
     }
@@ -269,7 +269,10 @@ export default {
   computed: {
     savedQueriesLocation: function(){
       const self = this;
-      return 'VueJSONQueryBuilder_saved_' + self.storage;
+      if (self.storage){
+        return 'VueJSONQueryBuilder_saved_' + self.storage;
+      }
+      return false;
     },
     storedQueriesLocation: function(){
       const self = this;
@@ -282,6 +285,10 @@ export default {
     runQueryDisabled: function() {
       const self = this;
       return self.loading || !self.areAllQueriesValid;
+    },
+    savedQueries: function() {
+      const self = this;
+      return self.modals.viewSavedQueries.savedQueries;
     },
     pointerEvents: function() {
       const self = this;
@@ -315,17 +322,36 @@ export default {
   },
   created: function() {
     const self = this;
-
-    self.getAndStoreSavedQueries();
     
-    const storedQueries = self.getStoredQueries();
-    if (storedQueries){
-      self.currentQuery = JSON.parse(JSON.stringify(storedQueries));
+    if (self.storedQueries){
+      self.currentQuery = JSON.parse(JSON.stringify(self.storedQueries));
     } else {
       self.resetToDefaultQuery();
     }
   },
   methods: {
+    getStoredQueries: function(){
+      const self = this;
+      if (self.storage){
+        const storedQueries = localStorage.getItem('VueJSONQueryBuilder_stored_' + self.storage);
+        if (storedQueries) {
+          return JSON.parse(storedQueries);
+        }
+        return false;
+      }
+      return false;
+    },
+    getSavedQueries: function(){
+      const self = this;
+      if (self.storage){
+        const savedQueries = localStorage.getItem('VueJSONQueryBuilder_saved_' + self.storage);
+        if (savedQueries) {
+          return JSON.parse(savedQueries);
+        }
+        return [];
+      }
+      return [];
+    },
     runCurrentQuery: function(){
       const self = this;
       if (self.runQuery){
@@ -361,35 +387,13 @@ export default {
       self.currentQuery = JSON.parse(JSON.stringify(self.query));
       self.addUUIDsToCurrentQuery();
     },
-    getAndStoreSavedQueries: function() {
-      const self = this;
-      const savedQueries = JSON.parse(localStorage.getItem(self.savedQueriesLocation));
-      if (Array.isArray(savedQueries)){
-        self.modals.viewSavedQueries.savedQueries = savedQueries;
-      } else {
-        self.modals.viewSavedQueries.savedQueries = [];
-      }
-      return self.modals.viewSavedQueries.savedQueries;
-    },
-    getStoredQueries: function() {
-      const self = this;
-      const storedQueries = JSON.parse(localStorage.getItem(self.storedQueriesLocation));
-      if (typeof storedQueries === 'object'){
-        self.storedQueries = storedQueries;
-      } else {
-        self.storedQueries = [];
-      }
-      return self.storedQueries;
-    },
     saveQuery: function() {
       const self = this;
-      const savedQueries = self.modals.viewSavedQueries.savedQueries;
-      savedQueries.push({
+      self.savedQueries.push({
         name: self.modals.saveQuery.queryName,
         createdDate: new Date(),
         query: JSON.parse(JSON.stringify(self.currentQuery))
       });
-      self.saveQueries();
       self.modals.saveQuery.visible = false;
       self.modals.saveQuery.queryName = '';
     },
@@ -399,17 +403,8 @@ export default {
       self.addUUIDsToCurrentQuery();
       self.modals.viewSavedQueries.visible = false;
     },
-    saveQueries: function() {
-      const self = this;
-      localStorage.setItem(self.savedQueriesLocation, JSON.stringify(self.modals.viewSavedQueries.savedQueries));
-    },
-    storeQueries: function() {
-      const self = this;
-      localStorage.setItem(self.storedQueriesLocation, JSON.stringify(self.currentQuery));
-    },
     deleteSavedQuery: function(query) {
       const self = this;
-      const currentSavedQueries = self.modals.viewSavedQueries.savedQueries;
       self.$bvModal.msgBoxConfirm('Please confirm that you wish to delete this query.', {
         title: 'Confirm Query Deletion',
         size: 'sm',
@@ -422,8 +417,7 @@ export default {
         centered: true
       }).then(function(response) {
         if (response === true){
-          currentSavedQueries.splice(currentSavedQueries.indexOf(query), 1);
-          self.saveQueries();
+          self.savedQueries.splice(self.savedQueries.indexOf(query), 1);
         } else {
           return false;
         }
@@ -437,8 +431,15 @@ export default {
         const self = this;
         self.$emit('input', self.currentQuery);
         if (self.storage){
-          self.storeQueries();
+          localStorage.setItem('VueJSONQueryBuilder_stored_' + self.storage, JSON.stringify(self.currentQuery));
         }
+      }
+    },
+    savedQueries: {
+      deep: true,
+      handler: function() {
+        const self = this;
+        localStorage.setItem('VueJSONQueryBuilder_saved_' + self.storage, JSON.stringify(self.savedQueries));
       }
     }
   }
