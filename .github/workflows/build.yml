@@ -57,4 +57,4 @@ jobs:
     - name: Commit changes
       uses: EndBug/add-and-commit@v6
       with:
-        add: 'dist, demo, docs'
+        add: 'dist demo docs'
