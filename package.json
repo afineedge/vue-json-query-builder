@@ -11,7 +11,8 @@
     "styleguide": "vue-cli-service styleguidist",
     "styleguide:build": "vue-cli-service styleguidist:build",
     "increment": "npm version patch",
-    "increment:beta": "npm version prepatch --preid=beta"
+    "increment:beta": "npm version prepatch --preid=beta",
+    "publish:beta": "npm publish --tag beta"
   },
   "dependencies": {
     "core-js": "^3.6.5",
