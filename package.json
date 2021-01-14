@@ -33,7 +33,6 @@
     "sass-loader": "^8.0.2",
     "vue": "^2.6.11",
     "vue-cli-plugin-styleguidist": "^4.31.0",
-    "vue-cli-plugin-webpack-bundle-analyzer": "~2.0.0",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
