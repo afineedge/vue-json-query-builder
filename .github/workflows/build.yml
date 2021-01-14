@@ -45,7 +45,6 @@ jobs:
       with:
         name: demo-without-markdown
         path: demo
-          demo
 
     - name: Build styleguide
       run: npm run styleguidist:build --if-present
