@@ -135,7 +135,7 @@
         v-if="runQuery"
         v-bind:disabled="runQueryDisabled"
       >
-        Run Query&nbsp;
+        Run Query
         <b-icon icon="circle-fill" animation="throb" class="ml-1" v-if="loading" />
         <b-icon-arrow-right-circle-fill class="ml-1" v-else />
       </b-button>
