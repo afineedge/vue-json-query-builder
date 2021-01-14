@@ -53,6 +53,7 @@ jobs:
       with:
         node-version: '12.x'
         registry-url: 'https://registry.npmjs.org'
-    - run: npm publish
+    - run: npm version prepatch --preid=beta
+    - run: npm publish --tag beta
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
