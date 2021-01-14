@@ -32,7 +32,7 @@ export default {
         condition: 'and',
         rules: [{
           id: 'state',
-          operator: 'is',
+          operator: '=',
           value: 'MD'
         }, {
           condition: 'and',
