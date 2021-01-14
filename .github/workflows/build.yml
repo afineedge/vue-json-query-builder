@@ -13,9 +13,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   
   build:
     runs-on: ubuntu-latest
@@ -26,8 +24,13 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-    - run: npm install
-    - run: npm run build:dist
-    - run: npm run build:demo
-      env:
-        CI: true
+    - name: Install dependencies
+      run: npm install
+    - name: Run ESLint
+      run: npm run lint --if-present
+    - name: Build dist (npm) version
+      run: npm run build:dist --if-present
+    - name: Build demo
+      run: npm run build:demo --if-present
+    - name: Build styleguide
+      run: npm run styleguidist:build --if-present
