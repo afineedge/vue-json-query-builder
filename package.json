@@ -1,6 +1,6 @@
 {
   "name": "vue-json-query-builder",
-  "version": "0.1.36-next.0",
+  "version": "0.1.37-next.0",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build:dist": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js",
