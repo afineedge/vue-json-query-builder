@@ -9,7 +9,9 @@
     "test:coverage": "nyc npm run test:unit",
     "lint": "vue-cli-service lint",
     "styleguide": "vue-cli-service styleguidist",
-    "styleguide:build": "vue-cli-service styleguidist:build"
+    "styleguide:build": "vue-cli-service styleguidist:build",
+    "increment": "npm version patch",
+    "increment:beta": "npm version prepatch --preid=beta"
   },
   "dependencies": {
     "core-js": "^3.6.5",
