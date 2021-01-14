@@ -542,10 +542,6 @@ Standard setup:
               name: 'Zachary Appleton'
             }]
           }, {
-            id: 'phone',
-            name: 'Phone',
-            type: 'phone'
-          }, {
             id: 'email',
             name: 'Email',
             type: 'email'
@@ -759,14 +755,6 @@ Save queries
   <template>
     <div>
       <VueJSONQueryBuilder v-bind:query="query" v-bind:options="queryOptions" v-model="currentQuery" storage="example" />
-      <strong class="mt-3 mb-1 d-block">Emitted Query:</strong>
-      <b-card>
-        <pre>
-          <code>
-            {{ JSON.stringify(currentQuery, null, 4) }}<br />
-          </code>
-        </pre>
-      </b-card>
     </div>
   </template>
 

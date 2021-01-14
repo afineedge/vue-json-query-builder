@@ -32,8 +32,8 @@ export default {
         condition: 'and',
         rules: [{
           id: 'state',
-          operator: 'in',
-          value: ['MD', 'NJ']
+          operator: 'is',
+          value: 'MD'
         }, {
           condition: 'and',
           rules: [{
