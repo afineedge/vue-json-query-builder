@@ -30,8 +30,27 @@ jobs:
     - name: Run ESLint
       run: npm run lint --if-present
 
-    - name: Build dist (npm) version
-      run: npm run build:dist && npm run build:demo
-      
+    - name: Build library
+      run: npm run build:dist --if-present
+    - name: Archive library artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-without-markdown
+        path: dist
+
+    - name: Build demo
+      run: npm run build:demo --if-present
+    - name: Archive demo artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: demo-without-markdown
+        path: demo
+          demo
+
     - name: Build styleguide
       run: npm run styleguidist:build --if-present
+    - name: Archive styleguide artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: docs-without-markdown
+        path: docs
