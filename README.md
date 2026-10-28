@@ -460,7 +460,7 @@ npm run dev
 | `npm run build` | Builds the library and its types to `dist/`. |
 | `npm run build:demo` | Builds the demo to `demo/dist/`. |
 
-Pushing a `v*` tag publishes to npm. Prerelease versions go to the `beta` tag.
+Pushing a `v*` tag publishes to npm through npm trusted publishing (no token secret). Prerelease versions go to the `beta` tag. The tag must match the version in `package.json`.
 
 ## License
 
