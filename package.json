@@ -1,128 +1,70 @@
 {
   "name": "vue-json-query-builder",
-  "version": "0.1.41",
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build:dist": "vue-cli-service build --target lib --name vue-json-query-builder ./vue-json-query-builder.js",
-    "build:demo": "vue-cli-service build --dest demo",
-    "test:unit": "vue-cli-service test:unit",
-    "test:coverage": "nyc npm run test:unit",
-    "lint": "vue-cli-service lint",
-    "styleguide": "vue-cli-service styleguidist",
-    "styleguide:build": "vue-cli-service styleguidist:build",
-    "increment": "npm version patch",
-    "increment:beta": "npm version prepatch --preid=beta",
-    "publish:beta": "npm publish --tag beta"
-  },
-  "dependencies": {
-    "core-js": "^3.6.5",
-    "uuid": "^8.2.0"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.5.4",
-    "@vue/cli-plugin-eslint": "^4.5.4",
-    "@vue/cli-plugin-unit-mocha": "^4.5.4",
-    "@vue/cli-service": "^4.5.4",
-    "@vue/test-utils": "^1.0.3",
-    "babel-eslint": "^10.1.0",
-    "babel-plugin-istanbul": "^6.0.0",
-    "bootstrap": "^4.5.0",
-    "bootstrap-vue": "^2.15.0",
-    "chai": "^4.1.2",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "node-sass": "^4.14.1",
-    "nyc": "^15.1.0",
-    "sass-loader": "^8.0.2",
-    "vue": "^2.6.11",
-    "vue-cli-plugin-styleguidist": "^4.31.0",
-    "vue-template-compiler": "^2.6.11"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
+  "version": "1.0.0-beta.0",
+  "description": "A Vue 3 component for building nested AND/OR queries as JSON.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/vue-json-query-builder.js"
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
-    },
-    "rules": {},
-    "overrides": [
-      {
-        "files": [
-          "**/__tests__/*.{j,t}s?(x)",
-          "**/tests/unit/**/*.spec.{j,t}s?(x)"
-        ],
-        "env": {
-          "mocha": true
-        }
-      }
-    ]
+    "./theme.css": "./dist/theme.css"
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
+  "module": "./dist/vue-json-query-builder.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
   ],
-  "nyc": {
-    "all": true,
-    "check-coverage": true,
-    "per-file": true,
-    "skip-full": true,
-    "include": [
-      "src/components/**"
-    ],
-    "extension": [
-      ".vue"
-    ],
-    "reporter": [
-      "text",
-      "text-summary",
-      "html"
-    ],
-    "report-dir": "./tests/coverage",
-    "temp-dir": "./tests/.nyc_output",
-    "watermarks": {
-      "functions": [
-        80,
-        95
-      ],
-      "lines": [
-        80,
-        95
-      ],
-      "branches": [
-        80,
-        95
-      ],
-      "statements": [
-        80,
-        95
-      ]
-    }
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build && vue-tsc -p tsconfig.build.json",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "lint": "eslint .",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
-  "description": "## Project setup ``` npm install ```",
-  "main": "dist/vue-json-query-builder.common.js",
-  "directories": {
-    "test": "tests"
+  "peerDependencies": {
+    "vue": "^3.4"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/afineedge/vue-json-query-builder.git"
   },
   "keywords": [
-    "Vue",
+    "vue",
+    "vue3",
     "query",
-    "JSON"
+    "query-builder",
+    "json"
   ],
   "author": "Eric Edgerton",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/afineedge/vue-json-query-builder/issues"
   },
-  "homepage": "https://github.com/afineedge/vue-json-query-builder#readme"
+  "homepage": "https://github.com/afineedge/vue-json-query-builder#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/eslint-config-typescript": "^14.9.0",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-vue": "^10.12.0",
+    "globals": "^17.13.0",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "vitest-axe": "^0.1.0",
+    "vue": "^3.5.44",
+    "vue-tsc": "^3.3.13"
+  }
 }

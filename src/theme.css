@@ -1,0 +1,45 @@
+/*
+ * vue-json-query-builder theme: fallback tokens plus the class scan, for apps that don't
+ * define the tokens themselves. Import it after Tailwind:
+ *
+ *   @import "tailwindcss";
+ *   @import "vue-json-query-builder/theme.css";
+ *
+ * `@theme default` means any token your app already defines wins. Apps that define every
+ * token below can skip this file and only add
+ *
+ *   @source "../node_modules/vue-json-query-builder/dist";
+ *
+ * Keep this list in sync with the utilities the components use (tests/theme.test.ts checks).
+ */
+
+/* Tailwind skips node_modules when detecting classes, so point it at the components. */
+@source "./";
+
+@theme default {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-focus: #1d4ed8; /* focus outlines: 6.7:1 on white */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-active: #991b1b;
+  --color-neutral-border: #8a919c; /* control borders: 3.2:1 on white */
+  --color-neutral-light: #f3f4f6;
+  --color-neutral-dark: #374151;
+  --color-neutral-white: #ffffff;
+  --color-neutral-very-light: #f9fafb;
+  --color-light: #eff6ff;
+
+  --radius: 0.25rem;
+  --radius-sm: 0.25rem;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: calc(1 / 0.75);
+  --text-sm: 0.875rem;
+  --text-sm--line-height: calc(1.25 / 0.875);
+  --text-base: 1rem;
+  --text-base--line-height: calc(1.5 / 1);
+  --text-lg: 1.125rem;
+  --text-lg--line-height: calc(1.75 / 1.125);
+}
