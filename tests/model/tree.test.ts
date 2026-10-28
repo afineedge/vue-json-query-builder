@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
 import type { QueryGroup, QueryRule } from '../../src/model'
 import { getNode, idFor, insertNode, removeNode, replaceNode, updateNode } from '../../src/model'
 
@@ -16,6 +17,15 @@ describe('idFor', () => {
     const node = rule('a')
     expect(idFor(node)).toBe(idFor(node))
     expect(idFor(node)).not.toBe(idFor(rule('a')))
+  })
+
+  it('gives a reactive proxy the same id as its raw node', () => {
+    const tree = sample()
+    const proxy = reactive(tree)
+    expect(idFor(proxy)).toBe(idFor(tree))
+    expect(idFor(proxy.rules[1]!)).toBe(idFor(tree.rules[1]!))
+    const next = updateNode(proxy, [0], (n) => ({ ...n, value: 'y' }))
+    expect(idFor(reactive(next).rules[0]!)).toBe(idFor(tree.rules[0]!))
   })
 
   it('never writes the id into the node', () => {

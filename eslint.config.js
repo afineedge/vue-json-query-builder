@@ -13,4 +13,9 @@ export default defineConfigWithVueTs(
       globals: { ...globals.browser, ...globals.node },
     },
   },
+  {
+    // Test probes are short-named and declare props as plain name lists.
+    files: ['tests/**'],
+    rules: { 'vue/require-prop-types': 'off', 'vue/multi-word-component-names': 'off' },
+  },
 )

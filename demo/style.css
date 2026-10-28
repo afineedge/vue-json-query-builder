@@ -1,3 +1,7 @@
 @import "tailwindcss";
 @import "../src/theme.css";
 @source "../src";
+
+body {
+  @apply bg-neutral-very-light text-neutral-dark;
+}
