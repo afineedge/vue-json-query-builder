@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      # npm trusted publishing: npm trusts this repo's publish.yml through GitHub's OIDC
+      # token, so there's no npm token secret to expire or to need a 2FA bypass.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +31,3 @@ jobs:
           VERSION=$(node -p 'require("./package.json").version')
           if [[ "$VERSION" == *-* ]]; then TAG=beta; else TAG=latest; fi
           npm publish --provenance --access public --tag "$TAG"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
