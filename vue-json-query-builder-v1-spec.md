@@ -42,14 +42,14 @@ Plan for rewriting vue-json-query-builder as v1: Vue 3, TypeScript, Tailwind v4.
 
 ### Milestone 2: model and helpers (`src/model/`)
 
-- [ ] Types: `QueryGroup`, `QueryRule`, `QueryNode`, `Condition`, `Operator`, `FieldType`, `FieldDef`, `SelectOption`, `ComponentMap`, `ValueControlProps`, `StorageAdapter`, `SavedQuery`.
-- [ ] `DEFAULT_OPERATORS` per type: text `eq, neq, contains, not_contains, starts_with, ends_with, not_starts_with, not_ends_with`; number/date/time `eq, neq, gt, lt, gte, lte, between`; select `eq, neq, in, not_in`; multiValued select `any_of, all_of, none_of`. `DEFAULT_OPERATOR_LABELS` (`is`, `is not`, `contains`, `is between`, `is any of`, `has any of`, `has all of`, `has none of`, ...), overridable through an `operatorLabels` prop.
-- [ ] `MULTI_VALUE_OPERATORS = new Set(['in', 'not_in', 'any_of', 'all_of', 'none_of'])` (fix 12).
-- [ ] Immutable update helpers: `updateNode`, `insertNode`, `removeNode`, `replaceNode` by path. `nodeIds` `WeakMap` with an `idFor(node)` that assigns on first sight; every helper copies the old node's id to its replacement (D6, fix 1).
-- [ ] `isRuleComplete(rule, field)`: value present for the operator's arity; `between` both ends present; arrays non-empty; numbers finite. `isRuleValid`: complete and `between` ordered. `isQueryValid(tree, fields)`: every rule valid, every field known, no empty group (fix 13). `pruneIncomplete(tree, fields)`: drops incomplete or invalid rules and then-empty groups; returns `null` when nothing is left.
-- [ ] Operator change resets the value only when arity changes (single ↔ array ↔ pair). Field change resets the operator to the field's first and the value to empty.
-- [ ] `migrateV0Query(v0)`: `id` → `field`; `=` → `eq`, `!=` → `neq`, `()` → `contains`, `!()` → `not_contains`, `(` → `starts_with`, `)` → `ends_with`, `!(` → `not_starts_with`, `!)` → `not_ends_with`, `>`/`<`/`>=`/`<=` → `gt`/`lt`/`gte`/`lte`, `in`/`not in` → `in`/`not_in`. Unknown operators throw.
-- [ ] `localStorageAdapter(namespace)`: `load`, `save`, `list`, `remove`, keyed `vue-json-query-builder:<namespace>:current|saved`. Throws on an empty namespace (fix 5).
+- [x] Types: `QueryGroup`, `QueryRule`, `QueryNode`, `Condition`, `Operator`, `FieldType`, `FieldDef`, `SelectOption`, `ComponentMap`, `ValueControlProps`, `StorageAdapter`, `SavedQuery`.
+- [x] `DEFAULT_OPERATORS` per type: text `eq, neq, contains, not_contains, starts_with, ends_with, not_starts_with, not_ends_with`; number/date/time `eq, neq, gt, lt, gte, lte, between`; select `eq, neq, in, not_in`; multiValued select `any_of, all_of, none_of`. `DEFAULT_OPERATOR_LABELS` (`is`, `is not`, `contains`, `is between`, `is any of`, `has any of`, `has all of`, `has none of`, ...), overridable through an `operatorLabels` prop.
+- [x] `MULTI_VALUE_OPERATORS = new Set(['in', 'not_in', 'any_of', 'all_of', 'none_of'])` (fix 12).
+- [x] Immutable update helpers: `updateNode`, `insertNode`, `removeNode`, `replaceNode` by path. `nodeIds` `WeakMap` with an `idFor(node)` that assigns on first sight; every helper copies the old node's id to its replacement (D6, fix 1).
+- [x] `isRuleComplete(rule, field)`: value present for the operator's arity; `between` both ends present; arrays non-empty; numbers finite. `isRuleValid`: complete and `between` ordered. `isQueryValid(tree, fields)`: every rule valid, every field known, no empty group (fix 13). `pruneIncomplete(tree, fields)`: drops incomplete or invalid rules and then-empty groups; returns `null` when nothing is left.
+- [x] Operator change resets the value only when arity changes (single ↔ array ↔ pair). Field change resets the operator to the field's first and the value to empty.
+- [x] `migrateV0Query(v0)`: `id` → `field`; `=` → `eq`, `!=` → `neq`, `()` → `contains`, `!()` → `not_contains`, `(` → `starts_with`, `)` → `ends_with`, `!(` → `not_starts_with`, `!)` → `not_ends_with`, `>`/`<`/`>=`/`<=` → `gt`/`lt`/`gte`/`lte`, `in`/`not in` → `in`/`not_in`. Unknown operators throw.
+- [x] `localStorageAdapter(namespace)`: `load`, `save`, `list`, `remove`, keyed `vue-json-query-builder:<namespace>:current|saved`. Throws on an empty namespace (fix 5).
 
 ### Milestone 3: components (`src/components/`)
 
