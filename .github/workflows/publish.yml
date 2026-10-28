@@ -14,11 +14,12 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      # No `registry-url` here: it makes setup-node write an .npmrc with a placeholder
+      # NODE_AUTH_TOKEN, which npm sends instead of the trusted-publishing credential.
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
