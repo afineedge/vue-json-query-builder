@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import {
   changeField,
   changeOperator,
@@ -39,7 +39,7 @@ const fieldOptions = computed<SelectOption[]>(() => {
   return field.value ? known : [{ value: props.rule.field, label: `Unknown field (${props.rule.field})` }, ...known]
 })
 const operatorOptions = computed<SelectOption[]>(() =>
-  field.value ? operatorsFor(field.value).map((op) => ({ value: op, label: ctx.labels[op] })) : [],
+  field.value ? operatorsFor(field.value).map((op) => ({ value: op, label: ctx.labelFor(op, field.value) })) : [],
 )
 
 const problem = computed(() => ruleProblem(props.rule, field.value))
@@ -56,16 +56,23 @@ const error = computed(() => {
         : `Not in the options: ${values.join(', ')}. Change the selection or remove this rule.`
     }
     case 'range':
-      return field.value!.type === 'number' ? 'Min must not exceed max' : 'From must not be after To'
+      return field.value!.type === 'number' ? 'Min must not exceed max.' : 'From must not be after To.'
     default:
       return null
   }
 })
 
 // Read new errors out; errors present on first render are left to aria-describedby.
+// Wait for typing to pause, so an error that flickers on and off isn't read out each keystroke.
+let errorTimer: ReturnType<typeof setTimeout> | undefined
 watch(error, (message, previous) => {
-  if (message && message !== previous) ctx.announce(message)
+  clearTimeout(errorTimer)
+  if (!message || message === previous) return
+  errorTimer = setTimeout(() => {
+    if (error.value === message) ctx.announce(message)
+  }, 600)
 })
+onBeforeUnmount(() => clearTimeout(errorTimer))
 
 const valueComponent = computed(() => {
   const f = field.value
@@ -229,13 +236,14 @@ function formatValue(value: unknown): string {
         v-else
         class="min-w-40 flex-1 self-center text-sm text-neutral-dark"
       >
-        <span class="font-medium">{{ rule.operator }}</span>
+        <span class="font-medium">{{ isOperator(rule.operator) ? ctx.labelFor(rule.operator) : rule.operator }}</span>
         <span class="ml-1 break-all">{{ formatValue(rule.value) }}</span>
       </div>
 
       <component
         :is="ctx.components.button"
         variant="danger"
+        class="min-w-8"
         :aria-label="`Remove rule ${index}`"
         :disabled="ctx.disabled"
         @click="emit('remove')"

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import type { QueryGroup, QueryRule } from '../../src/model'
-import { getNode, idFor, insertNode, removeNode, replaceNode, updateNode } from '../../src/model'
+import { getNode, idFor, insertNode, isQueryShape, removeNode, replaceNode, sanitizeQuery, updateNode } from '../../src/model'
 
 const rule = (field: string, value: unknown = 'x'): QueryRule => ({ field, operator: 'eq', value })
 
@@ -119,5 +119,26 @@ describe('fix 1: restored queries get row keys', () => {
     const ids = nodes.map(idFor)
     expect(new Set(ids).size).toBe(nodes.length)
     expect(ids.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
+  })
+})
+
+describe('isQueryShape and sanitizeQuery', () => {
+  it('accepts a well-formed tree and rejects malformed ones', () => {
+    expect(isQueryShape(sample())).toBe(true)
+    expect(isQueryShape(null)).toBe(false)
+    expect(isQueryShape({ condition: 'and' })).toBe(false)
+    expect(isQueryShape({ condition: 'xor', rules: [] })).toBe(false)
+    expect(isQueryShape({ condition: 'and', rules: [null] })).toBe(false)
+    expect(isQueryShape({ condition: 'and', rules: [{ field: 'a' }] })).toBe(false)
+  })
+
+  it('drops bad nodes, keeps good ones, and defaults the condition to and', () => {
+    expect(
+      sanitizeQuery({
+        condition: 'nope',
+        rules: [null, { field: 'a', operator: 'eq', value: 1, extra: true }, { condition: 'or', rules: [{}] }, 7],
+      }),
+    ).toEqual({ condition: 'and', rules: [{ field: 'a', operator: 'eq', value: 1 }, { condition: 'or', rules: [] }] })
+    expect(sanitizeQuery('x')).toBeNull()
   })
 })

@@ -5,6 +5,7 @@ import {
   MULTI_VALUE_OPERATORS,
   isOperator,
   operatorArity,
+  operatorLabel,
   operatorsFor,
 } from '../../src/model'
 import { field } from './fixtures'
@@ -47,5 +48,16 @@ describe('operators', () => {
     expect(MULTI_VALUE_OPERATORS.has('not_contains')).toBe(false)
     expect(operatorArity('contains')).toBe('single')
     expect([...MULTI_VALUE_OPERATORS].sort()).toEqual(['all_of', 'any_of', 'in', 'none_of', 'not_in'])
+  })
+})
+
+describe('operatorLabel', () => {
+  it('prefers overrides, then the field type wording, then the default', () => {
+    const date = { field: 'd', label: 'D', type: 'date' as const }
+    expect(operatorLabel('gt', date)).toBe('is after')
+    expect(operatorLabel('gt', { ...date, type: 'number' })).toBe('is greater than')
+    expect(operatorLabel('gt', date, { gt: 'later than' })).toBe('later than')
+    expect(operatorLabel('eq', date)).toBe('is')
+    expect(operatorLabel('lte')).toBe('is at most')
   })
 })

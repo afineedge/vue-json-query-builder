@@ -12,6 +12,10 @@ afterEach(() => {
   localStorage.clear()
 })
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+/** Live-region messages are set 50 ms after the region is cleared. */
+const announced = () => wait(80)
+
 const settle = async () => {
   await flush()
   await flush()
@@ -174,15 +178,19 @@ describe('live region', () => {
     const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'a')) })
     await button(wrapper, 'Add rule').trigger('click')
     await settle()
+    await announced()
     expect(liveText(wrapper)).toBe('Rule added')
     await button(wrapper, 'Add group').trigger('click')
     await settle()
+    await announced()
     expect(liveText(wrapper)).toBe('Group added')
     await button(wrapper, 'Remove group').trigger('click')
     await settle()
+    await announced()
     expect(liveText(wrapper)).toBe('Group removed')
     await button(wrapper, 'Remove rule 2').trigger('click')
     await settle()
+    await announced()
     expect(liveText(wrapper)).toBe('Rule removed')
   })
 
@@ -191,21 +199,110 @@ describe('live region', () => {
     expect(liveText(wrapper)).toBe('')
     await wrapper.find('input[aria-label="Min"]').setValue('9')
     await settle()
-    expect(liveText(wrapper)).toBe('Min must not exceed max')
+    // Errors wait for typing to pause before they're read out.
+    await wait(300)
+    expect(liveText(wrapper)).toBe('')
+    await wait(400)
+    expect(liveText(wrapper)).toBe('Min must not exceed max.')
+  })
+
+  it('does not announce an error that is fixed before typing pauses', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('price', 'between', [1, 5])) })
+    await wrapper.find('input[aria-label="Min"]').setValue('9')
+    await settle()
+    await wrapper.find('input[aria-label="Min"]').setValue('2')
+    await settle()
+    await wait(700)
+    expect(liveText(wrapper)).toBe('')
   })
 
   it('re-announces a repeated message', async () => {
     const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'a')) })
     await button(wrapper, 'Add rule').trigger('click')
     await settle()
+    await announced()
     const region = wrapper.find('[aria-live="polite"]').element
     const seen: string[] = []
     const observer = new MutationObserver(() => seen.push(region.textContent!.trim()))
     observer.observe(region, { childList: true, characterData: true, subtree: true })
     await button(wrapper, 'Add rule').trigger('click')
     await settle()
+    await announced()
     observer.disconnect()
     // Cleared first, so assistive tech sees a change even for the same text.
     expect(seen).toEqual(['', 'Rule added'])
+  })
+})
+
+describe('focus in the chrome', () => {
+  it('keeps focus on Run while the query runs', async () => {
+    let finish!: () => void
+    const wrapper = mountBuilder({
+      modelValue: tree(r('name', 'eq', 'a')),
+      runQuery: () => new Promise<void>((resolve) => (finish = resolve)),
+    })
+    const run = button(wrapper, 'Run query')
+    ;(run.element as HTMLElement).focus()
+    await run.trigger('click')
+    const running = button(wrapper, 'Running…')
+    expect(running.attributes('disabled')).toBeUndefined()
+    expect(running.attributes('aria-disabled')).toBe('true')
+    expect(document.activeElement).toBe(running.element)
+    finish()
+    await settle()
+    expect(document.activeElement).toBe(button(wrapper, 'Run query').element)
+  })
+
+  it('moves focus through the delete confirmation and lands on the next entry', async () => {
+    const storage = localStorageAdapter('focus')
+    storage.save(tree(r('name', 'eq', 'a')), 'Alpha')
+    storage.save(tree(r('name', 'eq', 'b')), 'Bravo')
+    const wrapper = mountBuilder({ storage, modelValue: tree(r('name', 'eq', 'x')) })
+    await button(wrapper, 'Saved queries').trigger('click')
+    await settle()
+
+    await button(wrapper, 'Delete Alpha').trigger('click')
+    await settle()
+    expect(document.activeElement).toBe(button(wrapper, 'Confirm delete Alpha').element)
+
+    await button(wrapper, 'Keep Alpha').trigger('click')
+    await settle()
+    expect(document.activeElement).toBe(button(wrapper, 'Delete Alpha').element)
+
+    await button(wrapper, 'Delete Alpha').trigger('click')
+    await settle()
+    await button(wrapper, 'Confirm delete Alpha').trigger('click')
+    await settle()
+    expect(storage.list().map((q) => q.name)).toEqual(['Bravo'])
+    expect(document.activeElement).toBe(button(wrapper, 'Load Bravo').element)
+
+    await button(wrapper, 'Delete Bravo').trigger('click')
+    await settle()
+    await button(wrapper, 'Confirm delete Bravo').trigger('click')
+    await settle()
+    expect((document.activeElement as HTMLElement).textContent).toContain('No saved queries yet')
+  })
+
+  it('focuses the Name field when the Save dialog opens and when the name is too short', async () => {
+    const wrapper = mountBuilder({ storage: localStorageAdapter('focus'), modelValue: tree(r('name', 'eq', 'x')) })
+    await button(wrapper, 'Save query').trigger('click')
+    await settle()
+    const input = wrapper.findAll('dialog')[0]!.find('input')
+    expect(document.activeElement).toBe(input.element)
+    ;(button(wrapper, 'Save').element as HTMLElement).focus()
+    await button(wrapper, 'Save').trigger('click')
+    await settle()
+    expect(document.activeElement).toBe(input.element)
+    expect(input.attributes('aria-invalid')).toBe('true')
+  })
+
+  it('reserves the error line, so the dialog buttons do not move when it appears', async () => {
+    const wrapper = mountBuilder({ storage: localStorageAdapter('focus'), modelValue: tree(r('name', 'eq', 'x')) })
+    await button(wrapper, 'Save query').trigger('click')
+    const errorLine = () => wrapper.findAll('dialog')[0]!.find('p.min-h-5')
+    expect(errorLine().exists()).toBe(true)
+    expect(errorLine().text()).toBe('')
+    await wrapper.findAll('dialog')[0]!.find('input').trigger('blur')
+    expect(errorLine().text()).toContain('at least 2 characters')
   })
 })

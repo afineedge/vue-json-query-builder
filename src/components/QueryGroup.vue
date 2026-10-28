@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import {
   createGroup,
   idFor,
@@ -79,28 +79,43 @@ function setCondition(condition: Condition) {
   if (condition !== props.group.condition) emit('update', { ...props.group, condition })
 }
 
-/** Arrow keys move between All and Any and select it, like a native radio group. */
-function onRadioKeydown(event: KeyboardEvent, index: number) {
+/**
+ * Arrow keys move between All and Any and select it, like a native radio group. Focus moves
+ * after the update renders, so the radio is already checked when a screen reader reads it.
+ */
+async function onRadioKeydown(event: KeyboardEvent, index: number) {
   const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
   if (!step || ctx.disabled) return
   event.preventDefault()
   const next = (index + step + conditions.length) % conditions.length
   setCondition(conditions[next]!.value)
+  await nextTick()
   radioRefs.value[next]?.focus()
+}
+
+/** Plans a focus move for when the update comes back, and drops it if the parent ignores the update. */
+function expectFocus(target: PendingFocus) {
+  pendingFocus = target
+  const before = props.group
+  void nextTick(() => {
+    if (props.group === before) pendingFocus = null
+  })
 }
 
 function addRule() {
   const first = ctx.fields[0]
   if (!canAdd.value || !first) return
-  pendingFocus = { child: props.group.rules.length }
+  const target = { child: props.group.rules.length }
   emit('update', insertNode(props.group, [], ruleFor(first)))
+  expectFocus(target)
   ctx.announce('Rule added')
 }
 
 function addGroup() {
   if (!canAdd.value) return
-  pendingFocus = { child: props.group.rules.length }
+  const target = { child: props.group.rules.length }
   emit('update', insertNode(props.group, [], createGroup(ctx.fields)))
+  expectFocus(target)
   ctx.announce('Group added')
 }
 
@@ -116,9 +131,10 @@ function updateChild(index: number, node: QueryNode) {
 function removeChild(index: number) {
   const removed = props.group.rules[index]
   if (props.group.rules.length === 1 && !isRoot.value) return emit('remove')
-  pendingFocus = index > 0 ? { child: index - 1 } : 'addRule'
+  const target: PendingFocus = index > 0 ? { child: index - 1 } : 'addRule'
   if (props.group.rules.length > 1) emit('update', removeNode(props.group, [index]))
   else emit('update', { ...props.group, rules: createGroup(ctx.fields).rules })
+  expectFocus(target)
   ctx.announce(removed && isGroup(removed) ? 'Group removed' : 'Rule removed')
 }
 </script>
@@ -170,7 +186,7 @@ function removeChild(index: number) {
           :is="ctx.components.button"
           ref="addRuleButton"
           :disabled="!canAdd"
-          :aria-describedby="addHint ? `${baseId}-hint` : undefined"
+          :aria-describedby="addHint && isRoot ? `${baseId}-hint` : undefined"
           @click="addRule"
         >
           Add rule
@@ -195,8 +211,9 @@ function removeChild(index: number) {
       </div>
     </div>
 
+    <!-- The limits apply to the whole query, so the hint shows once, on the root group. -->
     <p
-      v-if="addHint"
+      v-if="addHint && isRoot"
       :id="`${baseId}-hint`"
       class="mt-2 text-sm text-neutral-dark"
     >

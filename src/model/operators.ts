@@ -33,6 +33,32 @@ export const DEFAULT_OPERATOR_LABELS: Readonly<Record<Operator, string>> = {
   none_of: 'has none of',
 }
 
+/**
+ * Wording that reads better than the defaults for some field types: dates and times are
+ * "after" and "before", not "greater than" and "less than".
+ */
+export const TYPE_OPERATOR_LABELS: Readonly<Partial<Record<FieldType, Partial<Record<Operator, string>>>>> = {
+  date: { gt: 'is after', lt: 'is before', gte: 'is on or after', lte: 'is on or before' },
+  time: { gt: 'is after', lt: 'is before', gte: 'is at or after', lte: 'is at or before' },
+}
+
+/**
+ * The label for an operator: your `overrides` first, then the field type's wording, then
+ * the default.
+ */
+export function operatorLabel(
+  operator: Operator,
+  field?: FieldDef,
+  overrides?: Partial<Record<Operator, string>>,
+): string {
+  return (
+    overrides?.[operator] ??
+    (field && TYPE_OPERATOR_LABELS[field.type]?.[operator]) ??
+    DEFAULT_OPERATOR_LABELS[operator] ??
+    operator
+  )
+}
+
 /** Operators whose value is an array (fix 12: an explicit set, not `operator.includes('in')`). */
 export const MULTI_VALUE_OPERATORS: ReadonlySet<Operator> = new Set<Operator>(['in', 'not_in', 'any_of', 'all_of', 'none_of'])
 

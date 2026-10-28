@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import type { QueryGroup, SavedQuery, StorageAdapter } from '../model'
 import { useBuilderContext } from './context'
 import { controlClass } from './controls/styles'
+import { focusRef } from './focus'
 
 const props = defineProps<{ storage: StorageAdapter; query: QueryGroup | undefined }>()
 const emit = defineEmits<{ load: [query: QueryGroup, name: string] }>()
@@ -13,29 +14,66 @@ const saveOpen = ref(false)
 const listOpen = ref(false)
 const name = ref('')
 const nameTouched = ref(false)
+const saveError = ref<string | null>(null)
 const saved = ref<SavedQuery[]>([])
+const listError = ref<string | null>(null)
 const confirmingId = ref<string | null>(null)
 const nameId = `vjqb-save-name-${Math.random().toString(36).slice(2, 10)}`
 
+// Focus targets, all template refs.
+const nameInput = ref<HTMLInputElement>()
+const emptyMessage = ref<HTMLElement>()
+const confirmButtons = new Map<string, unknown>()
+const loadButtons = new Map<string, unknown>()
+const deleteButtons = new Map<string, unknown>()
+const setRef = (refs: Map<string, unknown>, id: string) => (el: unknown) => {
+  if (el) refs.set(id, el)
+  else refs.delete(id)
+}
+
 const trimmedName = computed(() => name.value.trim())
 const nameError = computed(() => (trimmedName.value.length < 2 ? 'Enter a name of at least 2 characters.' : null))
+const shownNameError = computed(() => saveError.value ?? (nameTouched.value ? nameError.value : null))
 
-function openSave() {
+const failure = (what: string, error: unknown) =>
+  `Couldn't ${what}${error instanceof Error && error.message ? `: ${error.message}` : '.'}`
+
+async function openSave() {
   name.value = ''
   nameTouched.value = false
+  saveError.value = null
   saveOpen.value = true
+  // The native dialog honours `autofocus`; this covers injected modals that don't.
+  await nextTick()
+  nameInput.value?.focus()
 }
 
 async function save() {
   nameTouched.value = true
-  if (nameError.value || !props.query) return
-  await props.storage.save(props.query, trimmedName.value)
+  saveError.value = null
+  if (nameError.value || !props.query) {
+    nameInput.value?.focus()
+    return
+  }
+  try {
+    await props.storage.save(props.query, trimmedName.value)
+  } catch (error) {
+    saveError.value = failure('save the query', error)
+    ctx.announce(saveError.value)
+    return
+  }
   saveOpen.value = false
   ctx.announce(`Saved ${trimmedName.value}`)
 }
 
 async function refresh() {
-  saved.value = await props.storage.list()
+  listError.value = null
+  try {
+    saved.value = await props.storage.list()
+  } catch (error) {
+    saved.value = []
+    listError.value = failure('load the saved queries', error)
+  }
 }
 
 async function openList() {
@@ -49,12 +87,34 @@ function load(entry: SavedQuery) {
   listOpen.value = false
 }
 
-/** Deletes by the saved query's id, never by position (fix 6). */
+async function askToDelete(entry: SavedQuery) {
+  confirmingId.value = entry.id
+  await nextTick()
+  focusRef(confirmButtons.get(entry.id))
+}
+
+async function keep(entry: SavedQuery) {
+  confirmingId.value = null
+  await nextTick()
+  focusRef(deleteButtons.get(entry.id))
+}
+
+/** Deletes by the saved query's id, never by position (fix 6), then focuses the next entry. */
 async function remove(entry: SavedQuery) {
-  await props.storage.remove(entry.id)
+  const index = saved.value.findIndex((q) => q.id === entry.id)
+  try {
+    await props.storage.remove(entry.id)
+  } catch (error) {
+    listError.value = failure(`delete ${entry.name}`, error)
+    ctx.announce(listError.value)
+    return
+  }
   ctx.announce(`Deleted ${entry.name}`)
   confirmingId.value = null
   await refresh()
+  await nextTick()
+  const next = saved.value[index] ?? saved.value[index - 1]
+  if (!next || !focusRef(loadButtons.get(next.id))) emptyMessage.value?.focus()
 }
 
 function formatDate(iso: string) {
@@ -95,20 +155,22 @@ function formatDate(iso: string) {
       >Name</label>
       <input
         :id="nameId"
+        ref="nameInput"
         v-model="name"
         type="text"
         :class="controlClass"
         autocomplete="off"
-        :aria-invalid="(nameTouched && !!nameError) || undefined"
-        :aria-describedby="nameTouched && nameError ? `${nameId}-error` : undefined"
+        autofocus
+        :aria-invalid="!!shownNameError || undefined"
+        :aria-describedby="shownNameError ? `${nameId}-error` : undefined"
         @blur="nameTouched = true"
       >
+      <!-- Always rendered, so an error appearing on blur doesn't shift the buttons under the pointer. -->
       <p
-        v-if="nameTouched && nameError"
         :id="`${nameId}-error`"
-        class="text-danger"
+        class="min-h-5 text-danger"
       >
-        {{ nameError }}
+        {{ shownNameError }}
       </p>
     </form>
     <template #footer>
@@ -133,8 +195,19 @@ function formatDate(iso: string) {
     v-model:open="listOpen"
     title="Saved queries"
   >
-    <p v-if="!saved.length">
-      No saved queries yet.
+    <p
+      v-if="listError"
+      class="mb-2 text-danger"
+    >
+      {{ listError }}
+    </p>
+    <p
+      v-if="!saved.length"
+      ref="emptyMessage"
+      tabindex="-1"
+      class="focus:outline-hidden"
+    >
+      No saved queries yet. Use Save query to keep the current one.
     </p>
     <ul
       v-else
@@ -157,13 +230,16 @@ function formatDate(iso: string) {
           <span>Delete “{{ entry.name }}”?</span>
           <component
             :is="ctx.components.button"
-            @click="confirmingId = null"
+            :aria-label="`Keep ${entry.name}`"
+            @click="keep(entry)"
           >
             Keep
           </component>
           <component
             :is="ctx.components.button"
+            :ref="setRef(confirmButtons, entry.id)"
             variant="danger"
+            :aria-label="`Confirm delete ${entry.name}`"
             @click="remove(entry)"
           >
             Delete
@@ -172,6 +248,7 @@ function formatDate(iso: string) {
         <template v-else>
           <component
             :is="ctx.components.button"
+            :ref="setRef(loadButtons, entry.id)"
             variant="primary"
             :aria-label="`Load ${entry.name}`"
             @click="load(entry)"
@@ -180,9 +257,10 @@ function formatDate(iso: string) {
           </component>
           <component
             :is="ctx.components.button"
+            :ref="setRef(deleteButtons, entry.id)"
             variant="danger"
             :aria-label="`Delete ${entry.name}`"
-            @click="confirmingId = entry.id"
+            @click="askToDelete(entry)"
           >
             Delete
           </component>

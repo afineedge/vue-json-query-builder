@@ -149,12 +149,12 @@ describe('between', () => {
 
   it('shows an inline error for a reversed range, wired with aria', () => {
     const wrapper = mountBuilder({ modelValue: tree(r('price', 'between', [9, 1]), r('date', 'between', ['2026-02-01', '2026-01-01'])) })
-    expect(wrapper.text()).toContain('Min must not exceed max')
-    expect(wrapper.text()).toContain('From must not be after To')
+    expect(wrapper.text()).toContain('Min must not exceed max.')
+    expect(wrapper.text()).toContain('From must not be after To.')
     const min = wrapper.find('input[aria-label="Min"]')
     expect(min.attributes('aria-invalid')).toBe('true')
     const errorId = min.attributes('aria-describedby')!
-    expect(wrapper.find(`#${errorId}`).text()).toBe('Min must not exceed max')
+    expect(wrapper.find(`#${errorId}`).text()).toBe('Min must not exceed max.')
   })
 
   it('does not show an error for a half-filled rule', () => {
@@ -492,5 +492,77 @@ describe('rule problems', () => {
     await wrapper.find('button[aria-haspopup="listbox"]').trigger('click')
     await flush()
     expect(wrapper.findAll('[role="option"]')[0]!.classes()).toContain('outline-primary')
+  })
+})
+
+describe('malformed trees', () => {
+  it('repairs a tree with bad nodes instead of crashing', async () => {
+    const broken = { condition: 'xor', rules: [null, 'x', { field: 'name', operator: 'eq', value: 'a' }, { condition: 'or' }] }
+    const wrapper = mountBuilder({ modelValue: broken as unknown as QueryGroup })
+    expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', 'a')))
+    await flush()
+    expect(wrapper.find('[aria-label="Rule 1"]').exists()).toBe(true)
+  })
+
+  it('falls back to the starting tree when the value is not a query at all', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'a')) })
+    await wrapper.setProps({ modelValue: { not: 'a query' } as unknown as QueryGroup })
+    await flush()
+    expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', null)))
+  })
+})
+
+describe('storage writes', () => {
+  it('persists one write at a time and finishes on the latest tree', async () => {
+    const written: string[] = []
+    let release!: () => void
+    const storage = {
+      persist: (q: QueryGroup) =>
+        new Promise<void>((resolve) => {
+          written.push((q.rules[0] as QueryRule).value as string)
+          release = resolve
+        }),
+      save: (query: QueryGroup, name: string) => ({ id: name, name, query, savedAt: '' }),
+      list: () => [],
+      remove: () => {},
+    }
+    const wrapper = mountBuilder({ storage, modelValue: tree(r('name', 'eq', 'a')) })
+    const input = wrapper.find('input[aria-label="Value"]')
+    await input.setValue('b')
+    await flush()
+    await input.setValue('c')
+    await input.setValue('d')
+    await flush()
+    expect(written).toEqual(['b'])
+    release()
+    await flush()
+    await flush()
+    expect(written).toEqual(['b', 'd'])
+  })
+
+  it('shows an error in the Save dialog when saving fails', async () => {
+    const storage = {
+      save: () => {
+        throw new Error('disk full')
+      },
+      list: () => [],
+      remove: () => {},
+    }
+    const wrapper = mountBuilder({ storage, modelValue: tree(r('name', 'eq', 'a')) })
+    await button(wrapper, 'Save query').trigger('click')
+    await wrapper.findAll('dialog')[0]!.find('input').setValue('Mine')
+    await button(wrapper, 'Save').trigger('click')
+    await flush()
+    expect(wrapper.text()).toContain("Couldn't save the query: disk full")
+  })
+})
+
+describe('operator labels', () => {
+  it('uses date and time wording, and lets operatorLabels override it', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('date', 'gt', '2026-01-01'), r('time', 'lte', '09:00'), r('price', 'gt', 1)) })
+    const selected = () => wrapper.findAll('select[aria-label="Operator"]').map((s) => (s.element as HTMLSelectElement).selectedOptions[0]!.text)
+    expect(selected()).toEqual(['is after', 'is at or before', 'is greater than'])
+    const overridden = mountBuilder({ modelValue: tree(r('date', 'gt', '2026-01-01')), operatorLabels: { gt: 'later than' } })
+    expect((overridden.find('select[aria-label="Operator"]').element as HTMLSelectElement).selectedOptions[0]!.text).toBe('later than')
   })
 })
