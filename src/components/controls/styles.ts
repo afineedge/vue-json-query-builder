@@ -22,4 +22,4 @@ export type ButtonVariant = keyof typeof buttonVariants
 export const buttonClass =
   'inline-flex items-center justify-center gap-1 rounded px-2 py-1 text-sm font-medium whitespace-nowrap ' +
   'focus:outline-hidden focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary-focus ' +
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none'
+  'disabled:cursor-not-allowed disabled:opacity-60 disabled:pointer-events-none'

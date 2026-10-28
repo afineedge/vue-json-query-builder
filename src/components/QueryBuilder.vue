@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, nextTick, provide, ref, useSlots, watch } from 'vue'
+import { computed, provide, ref, useSlots, watch } from 'vue'
 import {
-  DEFAULT_OPERATOR_LABELS,
   carryId,
   createGroup,
   isGroup,
+  isQueryShape,
   isQueryValid,
+  operatorLabel,
   pruneIncomplete,
   queryHasErrors,
+  sanitizeQuery,
   type ComponentMap,
   type ComponentName,
   type FieldDef,
   type Operator,
   type QueryGroup as Group,
   type QueryNode,
+  type RuleValueSlotProps,
   type StorageAdapter,
 } from '../model'
 import { builderContextKey, type BuilderContext } from './context'
@@ -29,7 +32,7 @@ defineOptions({ name: 'VueJsonQueryBuilder' })
 
 const props = withDefaults(
   defineProps<{
-    fields: FieldDef[]
+    fields: readonly FieldDef[]
     /** What Reset restores, and the starting tree when no `v-model` is given. */
     defaultQuery?: Group
     /** Replacement controls; see the D8 props contract. */
@@ -74,7 +77,7 @@ defineSlots<{
     valid: boolean
     runnable: boolean
   }): unknown
-  'rule-value'?(props: Record<string, unknown>): unknown
+  'rule-value'?(props: RuleValueSlotProps): unknown
 }>()
 
 const slots = useSlots()
@@ -95,13 +98,14 @@ const DEFAULT_COMPONENTS: Record<ComponentName, BuilderContext['components'][Com
 }
 
 const components = computed(() => ({ ...DEFAULT_COMPONENTS, ...props.components }))
-const labels = computed(() => ({ ...DEFAULT_OPERATOR_LABELS, ...props.operatorLabels }))
 const isDisabled = computed(() => props.disabled || loading.value)
 
 function countRules(node: QueryNode): number {
   return isGroup(node) ? node.rules.reduce((sum, child) => sum + countRules(child), 0) : 1
 }
-const ruleCount = computed(() => (model.value ? countRules(model.value) : 0))
+/** The tree, once it's well formed. A malformed one is repaired and re-emitted below. */
+const tree = computed(() => (isQueryShape(model.value) ? model.value : null))
+const ruleCount = computed(() => (tree.value ? countRules(tree.value) : 0))
 
 provide(builderContextKey, {
   get fields() {
@@ -110,8 +114,8 @@ provide(builderContextKey, {
   get components() {
     return components.value
   },
-  get labels() {
-    return labels.value
+  labelFor(operator: Operator, field?: FieldDef) {
+    return operatorLabel(operator, field, props.operatorLabels)
   },
   get maxDepth() {
     return props.maxDepth
@@ -131,20 +135,27 @@ provide(builderContextKey, {
   announce,
 })
 
-/** Clears, then sets, the live region so a repeated message is still read out. */
+/**
+ * Clears, then sets, the live region so a repeated message is still read out. The set waits
+ * a moment because some screen readers skip a change made in the same task as the clear.
+ */
+let announceTimer: ReturnType<typeof setTimeout> | undefined
 function announce(message: string) {
   liveMessage.value = ''
-  void nextTick(() => (liveMessage.value = message))
+  clearTimeout(announceTimer)
+  announceTimer = setTimeout(() => (liveMessage.value = message), 50)
 }
 
 const clone = (query: Group): Group => JSON.parse(JSON.stringify(query)) as Group
 const initialQuery = (): Group => (props.defaultQuery ? clone(props.defaultQuery) : createGroup(props.fields))
-const looksLikeGroup = (value: unknown): value is Group =>
-  typeof value === 'object' && value !== null && Array.isArray((value as Group).rules)
+/** A malformed tree (from a URL or storage) with its bad nodes dropped, or the starting tree. */
+const repair = (value: unknown): Group => sanitizeQuery(value) ?? initialQuery()
 
 // With no tree on mount, start from storage, then defaultQuery, then one blank rule.
 let loadingStored = false
-if (model.value == null) {
+if (model.value != null && !isQueryShape(model.value)) {
+  model.value = repair(model.value)
+} else if (model.value == null) {
   const storage = props.storage
   if (storage?.load) {
     loadingStored = true
@@ -153,32 +164,50 @@ if (model.value == null) {
       .catch(() => null)
       .then((stored) => {
         loadingStored = false
-        if (model.value == null) model.value = looksLikeGroup(stored) ? stored : initialQuery()
+        if (model.value == null) model.value = isQueryShape(stored) ? stored : repair(stored)
       })
   } else {
     model.value = initialQuery()
   }
 }
 
-// If the parent clears the tree later (say, Back to a URL with no query), start over.
+// If the parent clears the tree later (say, Back to a URL with no query), start over; if it
+// hands over a malformed one, repair it.
 watch(model, (query) => {
-  if (query == null && !loadingStored) model.value = initialQuery()
+  if (loadingStored) return
+  if (query == null) model.value = initialQuery()
+  else if (!isQueryShape(query)) model.value = repair(query)
 })
 
-const isValid = computed(() => !!model.value && isQueryValid(model.value, props.fields))
+const isValid = computed(() => !!tree.value && isQueryValid(tree.value, props.fields))
 watch(isValid, (v) => (valid.value = v), { immediate: true })
 
-// Persisting is best effort: a failing adapter mustn't break editing.
-watch(model, (query) => {
-  const storage = props.storage
-  if (!query || !storage?.persist) return
-  Promise.resolve()
-    .then(() => storage.persist!(query))
-    .catch(() => {})
+// Persisting is best effort: a failing adapter mustn't break editing. Writes run one at a
+// time and skip to the latest tree, so a slow adapter can't save an older tree last.
+let persisting = false
+let toPersist: Group | null = null
+async function persistLatest() {
+  if (persisting) return
+  persisting = true
+  while (toPersist && props.storage?.persist) {
+    const next = toPersist
+    toPersist = null
+    try {
+      await props.storage.persist(next)
+    } catch {
+      // Ignored: see above.
+    }
+  }
+  persisting = false
+}
+watch(tree, (query) => {
+  if (!query || !props.storage?.persist) return
+  toPersist = query
+  void persistLatest()
 })
 
-const pruned = computed(() => (model.value ? pruneIncomplete(model.value, props.fields) : null))
-const hasErrors = computed(() => !!model.value && queryHasErrors(model.value, props.fields))
+const pruned = computed(() => (tree.value ? pruneIncomplete(tree.value, props.fields) : null))
+const hasErrors = computed(() => !!tree.value && queryHasErrors(tree.value, props.fields))
 /** Run works whenever something is complete and nothing on screen is an error. */
 const runnable = computed(() => !!pruned.value && !hasErrors.value)
 const runHint = computed(() => {
@@ -210,6 +239,9 @@ async function run() {
   try {
     await props.runQuery(query)
     announce('Query finished')
+  } catch (error) {
+    announce('Query failed')
+    throw error
   } finally {
     loading.value = false
   }
@@ -222,7 +254,7 @@ function reset() {
 }
 
 function load(query: Group, name: string) {
-  if (!looksLikeGroup(query)) return announce(`Couldn't load ${name}`)
+  if (!isQueryShape(query)) return announce(`Couldn't load ${name}`)
   model.value = clone(query)
   announce(`Loaded ${name}`)
 }
@@ -275,8 +307,8 @@ function load(query: Group, name: string) {
         :aria-busy="loading || undefined"
       >
         <QueryGroup
-          v-if="model"
-          :group="model"
+          v-if="tree"
+          :group="tree"
           :depth="1"
           @update="onUpdate"
         />
@@ -295,7 +327,7 @@ function load(query: Group, name: string) {
             <SavedQueries
               v-if="storage"
               :storage="storage"
-              :query="model ?? undefined"
+              :query="tree ?? undefined"
               @load="load"
             />
             <div class="ms-auto flex flex-wrap items-center gap-2">
@@ -316,7 +348,8 @@ function load(query: Group, name: string) {
                 :is="components.button"
                 v-if="runQuery"
                 variant="primary"
-                :disabled="isDisabled || !runnable"
+                :disabled="loading ? false : isDisabled || !runnable"
+                :aria-disabled="loading || undefined"
                 :aria-describedby="runHint ? runHintId : undefined"
                 @click="run"
               >

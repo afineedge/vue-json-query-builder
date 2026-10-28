@@ -107,7 +107,7 @@ describe('D10 regressions', () => {
     )
     await button(wrapper, 'Run query').trigger('click')
     expect(wrapper.find('[inert]').exists()).toBe(true)
-    expect(button(wrapper, 'Running…').attributes('disabled')).toBeDefined()
+    expect(button(wrapper, 'Running…').attributes('aria-disabled')).toBe('true')
     expect(wrapper.find('input[aria-label="Value"]').attributes('disabled')).toBeDefined()
     reject(new Error('server down'))
     await flush()

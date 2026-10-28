@@ -138,3 +138,34 @@ All the before-beta.0 actions are done, along with the recommendations for open 
 - **Open question 2 → (b):** `StorageAdapter` is now `load?`, `persist?`, `save(query, name)`, `list` and `remove`. Persist errors are ignored.
 - **Open question 3 → (b):** a select value outside `options` is an error, with an inline message. A multi-select toggle drops unknown values. A field without `options` skips the check. Operators the field doesn't offer also show an inline error now.
 - **Still open:** question 4, checking the original spec for decisions after D11.
+
+## Resolution, before 1.0 items (1.0.0-beta.1)
+
+Done:
+
+- **Chrome:**
+  - Run keeps focus while running (`aria-disabled`), and a failure is announced as "Query failed".
+  - In Saved queries, Delete focuses the confirm button, Keep returns focus to Delete, and after a delete focus moves to the next entry (or to the empty-state message).
+  - The Save dialog opens with focus on Name, and focus goes back there when the name is too short.
+  - The error line is always rendered, so the buttons don't move when an error appears.
+  - Save, list and remove failures show an inline error and are announced.
+- **Storage:**
+  - Current-tree writes run one at a time and skip to the latest tree.
+  - A synchronous throw from `load()` is caught.
+  - `persist` errors are ignored. Errors from `save`, `list` and `remove` reach the dialog, which covers quota errors from `setItem`.
+- **Shape guard:** `isQueryShape` and `sanitizeQuery`. The builder repairs a malformed `v-model` value or stored tree, and doesn't render it until it's repaired.
+- **Copy and states:**
+  - date and time wording (`TYPE_OPERATOR_LABELS`, `operatorLabel`), with `operatorLabels` overrides still winning
+  - periods on the range errors
+  - the add-rule hint shown once, on the root group
+  - the Saved queries empty-state hint
+  - `opacity-60` for every disabled state
+  - an `min-w-8` × remove button and a `size-8` dialog close button
+  - unknown-field rules show the operator label instead of the raw key
+- **Focus and announcements:**
+  - `pendingFocus` is dropped when the parent ignores an update.
+  - Errors are announced after a 600 ms pause.
+  - Live-region messages are set 50 ms after the clear.
+- **Types:** `fields` accepts a readonly array. The `rule-value` slot is typed as `RuleValueSlotProps`.
+
+Changed from the plan: the All/Any arrow-key handler stays, because the spec asks for keyboard tests of the radio group. It now moves focus after the update renders, so the radio is already checked when a screen reader reads it. That fixes the announcement problem accessibility raised.

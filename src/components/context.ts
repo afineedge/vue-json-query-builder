@@ -5,7 +5,8 @@ import type { ComponentName, FieldDef, Operator } from '../model'
 export interface BuilderContext {
   readonly fields: readonly FieldDef[]
   readonly components: Readonly<Record<ComponentName, Component>>
-  readonly labels: Readonly<Record<Operator, string>>
+  /** The operator's label for this field, after the `operatorLabels` overrides. */
+  labelFor(operator: Operator, field?: FieldDef): string
   readonly maxDepth: number
   readonly maxRules: number
   /** Rules in the whole tree, for the `maxRules` cap. */

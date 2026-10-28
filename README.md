@@ -139,10 +139,10 @@ Dates are `YYYY-MM-DD` strings and times are `HH:MM` strings, as native inputs p
 | `ends_with` | ends with | one | text |
 | `not_starts_with` | does not start with | one | text |
 | `not_ends_with` | does not end with | one | text |
-| `gt` | is greater than | one | number, date, time |
-| `lt` | is less than | one | number, date, time |
-| `gte` | is at least | one | number, date, time |
-| `lte` | is at most | one | number, date, time |
+| `gt` | is greater than (date and time: is after) | one | number, date, time |
+| `lt` | is less than (date and time: is before) | one | number, date, time |
+| `gte` | is at least (date: is on or after, time: is at or after) | one | number, date, time |
+| `lte` | is at most (date: is on or before, time: is at or before) | one | number, date, time |
 | `between` | is between | `[min, max]` | number, date, time |
 | `in` | is any of | array | select |
 | `not_in` | is none of | array | select |
@@ -150,7 +150,7 @@ Dates are `YYYY-MM-DD` strings and times are `HH:MM` strings, as native inputs p
 | `all_of` | has all of | array | multi-valued select |
 | `none_of` | has none of | array | multi-valued select |
 
-Change the labels with the `operatorLabels` prop, for example `:operator-labels="{ eq: 'equals' }"`.
+Change the labels with the `operatorLabels` prop, for example `:operator-labels="{ eq: 'equals' }"`. Your labels apply to every field type and win over the date and time wording.
 
 Changing a rule's operator keeps its value when the new operator takes the same kind of value, and clears it otherwise. Changing a rule's field resets the operator to the field's first operator and clears the value.
 
@@ -181,7 +181,7 @@ The header, footer and their buttons appear only when you pass the props they ne
 | --- | --- | --- |
 | `header` | `{ title, collapsed, toggle }` | The default header. |
 | `footer` | `{ run, reset, loading, valid, runnable }` | The default footer (save and load buttons, Reset, Run query). `run` does nothing unless `runnable` is true. |
-| `rule-value` | The [value control props](#value-controls) plus `rule` and `update(value)` | Every rule's value control. |
+| `rule-value` | `RuleValueSlotProps`: the [value control props](#value-controls) plus `rule` and `update(value)` | Every rule's value control. |
 
 ## Keeping the query in the URL
 
@@ -222,7 +222,7 @@ watch(
 )
 ```
 
-Setting `query` to `null` is safe: the builder emits its starting tree.
+Setting `query` to `null` is safe: the builder emits its starting tree. So is a malformed tree, such as a hand-edited URL: the builder drops the bad nodes and emits the repaired tree (or its starting tree if nothing usable is left).
 
 `pruneIncomplete` also drops rules that have an error. To hold off while the user has an error on screen, check `queryHasErrors(tree, fields)`.
 
@@ -358,12 +358,15 @@ defineExpose({ focus: () => inner.value?.focus() })
 | `isBetweenReversed(rule, field)` | `true` for a complete `between` whose min is above its max. |
 | `unknownValues(rule, field)` | A select rule's values that aren't in the field's options. |
 | `createGroup(fields)` | An AND group with one blank rule for the first field. |
+| `isQueryShape(value)` | `true` when a value is a well-formed tree all the way down. Use it on trees from a URL or storage. |
+| `sanitizeQuery(value)` | A copy of a malformed tree with bad nodes dropped and unknown conditions set to AND, or `null`. |
+| `operatorLabel(operator, field?, overrides?)` | The label the builder shows for an operator. |
 | `ruleFor(field)` | A blank rule for a field. |
 | `pruneIncomplete(tree, fields)` | The tree without incomplete or invalid rules and the groups they leave empty, or `null` if nothing is left. |
 | `operatorsFor(field)` | The operators a field offers, in order. |
 | `migrateV0Query(v0)` | Converts a 0.1.x tree to v1. Throws on an unknown operator. |
 | `localStorageAdapter(namespace)` | A `StorageAdapter` backed by `localStorage`. |
-| `DEFAULT_OPERATORS`, `DEFAULT_OPERATOR_LABELS`, `MULTI_VALUE_OPERATORS` | The built-in operator lists, labels and list operators. |
+| `DEFAULT_OPERATORS`, `DEFAULT_OPERATOR_LABELS`, `TYPE_OPERATOR_LABELS`, `MULTI_VALUE_OPERATORS` | The built-in operator lists, labels, per-type wording and list operators. |
 
 All the types (`QueryGroup`, `QueryRule`, `FieldDef`, `Operator`, `ComponentMap`, `ValueControlProps`, `SelectControlProps`, `StorageAdapter`, `LocalStorageAdapter`, `SavedQuery` and more) are exported too.
 
@@ -390,7 +393,8 @@ interface StorageAdapter {
 ```
 
 - `load` and `persist` are optional. Leave them out if you only want named queries.
-- `persist` runs on every change, so debounce it in a server-backed adapter. Its errors are ignored, so they never break editing.
+- `persist` runs on every change. The builder runs one write at a time and skips straight to the latest tree, so writes never land out of order. Its errors are ignored, so they never break editing.
+- If `save`, `list` or `remove` fails, the dialog shows the error message and announces it.
 - `save` adds an entry `{ id, name, query, savedAt }`.
 - `remove` deletes by `id`.
 - If `load` returns something that isn't a query, the builder uses its starting tree instead.
@@ -405,7 +409,9 @@ interface StorageAdapter {
 - Focus indicators are outlines with an offset, so they still show in Windows High Contrast (forced-colors) mode. The `theme.css` fallbacks meet 3:1 for focus outlines and control borders.
 - One polite live region per builder announces added and removed rules and groups, new errors, and save, load, reset and run actions.
 - The multi-select follows the listbox pattern: the arrow keys, Home and End, and typeahead move through the options, Space or Enter toggles one, and Escape closes the list and returns focus to its button.
-- While `runQuery` is pending, the tree is `inert`, so keyboard input can't change it.
+- While `runQuery` is pending, the tree is `inert`, so keyboard input can't change it. Run keeps focus (it's `aria-disabled`, not disabled), and a failure is announced.
+- In Saved queries, Delete moves focus to the confirm button, Keep returns it to Delete, and after a delete focus moves to the next entry. The Save dialog opens with focus on the Name field.
+- New inline errors are announced once typing pauses, so an error that flickers while you type isn't read out on every keystroke.
 
 ## Limits
 

@@ -89,6 +89,12 @@ export interface ValueControlProps {
  */
 export type SelectControlProps = Omit<ValueControlProps, 'field'> & { field?: FieldDef }
 
+/** What the `rule-value` slot receives: the value-control props plus the rule and a setter. */
+export type RuleValueSlotProps = ValueControlProps & {
+  rule: QueryRule
+  update: (value: unknown) => void
+}
+
 export interface SavedQuery {
   id: string
   name: string
