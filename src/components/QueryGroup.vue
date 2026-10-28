@@ -136,13 +136,13 @@ function removeChild(index: number) {
       <div
         role="radiogroup"
         aria-label="Match"
-        class="inline-flex overflow-hidden rounded border border-neutral-border"
+        class="inline-flex overflow-hidden rounded border border-neutral-border has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary-focus"
       >
         <label
           v-for="(c, i) in conditions"
           :key="c.value"
           :class="[
-            'cursor-pointer px-3 py-1 text-sm font-medium select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-focus has-[:focus-visible]:ring-inset',
+            'cursor-pointer px-3 py-1 text-sm font-medium select-none',
             group.condition === c.value
               ? 'bg-primary text-neutral-white'
               : 'bg-neutral-white text-neutral-dark hover:bg-neutral-light',

@@ -286,13 +286,33 @@ describe('chrome', () => {
     expect(lastQuery(wrapper)).toEqual(defaultQuery)
   })
 
-  it('Run passes the tree to runQuery and is disabled while the query is invalid', async () => {
+  it('Run is disabled with a hint until a rule is complete', async () => {
     const calls: QueryGroup[] = []
     const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', null)), runQuery: (q: QueryGroup) => void calls.push(q) })
-    expect(button(wrapper, 'Run query').attributes('disabled')).toBeDefined()
+    const run = () => button(wrapper, 'Run query')
+    expect(run().attributes('disabled')).toBeDefined()
+    expect(wrapper.find(`#${run().attributes('aria-describedby')}`).text()).toBe('Complete a rule to run the query.')
     await wrapper.find('input[aria-label="Value"]').setValue('Bob')
+    expect(run().attributes('aria-describedby')).toBeUndefined()
+    await run().trigger('click')
+    expect(calls).toEqual([tree(r('name', 'eq', 'Bob'))])
+  })
+
+  it('Run sends the pruned tree, so a half-filled rule does not block it', async () => {
+    const calls: QueryGroup[] = []
+    const wrapper = mountBuilder({
+      modelValue: tree(r('name', 'eq', 'Bob'), r('price', 'gt', null), tree(r('date', 'eq', null))),
+      runQuery: (q: QueryGroup) => void calls.push(q),
+    })
     await button(wrapper, 'Run query').trigger('click')
     expect(calls).toEqual([tree(r('name', 'eq', 'Bob'))])
+  })
+
+  it('Run is disabled while an error is on screen, even if other rules are complete', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'Bob'), r('price', 'between', [9, 1])), runQuery: () => {} })
+    const run = button(wrapper, 'Run query')
+    expect(run.attributes('disabled')).toBeDefined()
+    expect(wrapper.find(`#${run.attributes('aria-describedby')}`).text()).toBe('Fix the errors above to run the query.')
   })
 
   it('renders custom header and footer slots with their scope', async () => {
@@ -322,7 +342,7 @@ describe('chrome', () => {
 describe('storage', () => {
   it('loads the stored tree on mount when no v-model is given', async () => {
     const storage = localStorageAdapter('t')
-    storage.save(tree(r('name', 'eq', 'stored')))
+    storage.persist(tree(r('name', 'eq', 'stored')))
     const wrapper = mountBuilder({ storage })
     await flush()
     expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', 'stored')))
@@ -330,7 +350,7 @@ describe('storage', () => {
 
   it('ignores storage on mount when a v-model is given, and saves every change', async () => {
     const storage = localStorageAdapter('t')
-    storage.save(tree(r('name', 'eq', 'stored')))
+    storage.persist(tree(r('name', 'eq', 'stored')))
     const wrapper = mountBuilder({ storage, modelValue: tree(r('name', 'eq', 'given')) })
     await flush()
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
@@ -377,5 +397,100 @@ describe('mounting', () => {
     const wrapper = mount(VueJsonQueryBuilder, { props: { fields } })
     await nextTick()
     expect(wrapper.find('[aria-label="Rule 1"]').exists()).toBe(true)
+  })
+})
+
+describe('a null or missing v-model', () => {
+  it('emits a starting tree when mounted with null', async () => {
+    const wrapper = mountBuilder({ modelValue: null })
+    expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', null)))
+    await flush()
+    expect(wrapper.find('[aria-label="Rule 1"]').exists()).toBe(true)
+  })
+
+  it('starts over when the parent clears the tree after mount', async () => {
+    const defaultQuery = tree(r('price', 'gt', 1))
+    const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'a')), defaultQuery })
+    await wrapper.setProps({ modelValue: undefined })
+    await flush()
+    expect(lastQuery(wrapper)).toEqual(defaultQuery)
+    await wrapper.setProps({ modelValue: null })
+    await flush()
+    expect(lastQuery(wrapper)).toEqual(defaultQuery)
+    expect(wrapper.find('[aria-label="Rule 1"]').exists()).toBe(true)
+  })
+
+  it('falls back to the starting tree when storage holds something that is not a query', async () => {
+    localStorage.setItem('vue-json-query-builder:t:current', '{"not":"a query"}')
+    const wrapper = mountBuilder({ storage: localStorageAdapter('t') })
+    await flush()
+    expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', null)))
+  })
+
+  it('works with an adapter that has no load or persist', async () => {
+    const saved: string[] = []
+    const storage = {
+      save: (query: QueryGroup, name: string) => (saved.push(name), { id: name, name, query, savedAt: '' }),
+      list: () => [],
+      remove: () => {},
+    }
+    const wrapper = mountBuilder({ storage })
+    expect(lastQuery(wrapper)).toEqual(tree(r('name', 'eq', null)))
+    await button(wrapper, 'Save query').trigger('click')
+    await wrapper.findAll('dialog')[0]!.find('input').setValue('Mine')
+    await button(wrapper, 'Save').trigger('click')
+    await flush()
+    expect(saved).toEqual(['Mine'])
+  })
+})
+
+describe('default number input', () => {
+  it('keeps what the user typed when it already means the value, so decimals can be entered', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('price', 'eq', null)) })
+    const input = () => wrapper.find('input[aria-label="Value"]')
+    await input().setValue('1.0')
+    expect(lastQuery(wrapper)).toEqual(tree(r('price', 'eq', 1)))
+    expect((input().element as HTMLInputElement).value).toBe('1.0')
+    await input().setValue('1.05')
+    expect(lastQuery(wrapper)).toEqual(tree(r('price', 'eq', 1.05)))
+  })
+
+  it('shows a new value set from outside', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('price', 'eq', 1)) })
+    await wrapper.find('input[aria-label="Value"]').setValue('1.0')
+    await wrapper.setProps({ modelValue: tree(r('price', 'eq', 42)) })
+    expect((wrapper.find('input[aria-label="Value"]').element as HTMLInputElement).value).toBe('42')
+  })
+})
+
+describe('rule problems', () => {
+  it('shows an error for a select value that is not an option, and blocks validity', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('state', 'eq', 'TX')), valid: true })
+    expect(wrapper.text()).toContain('"TX" isn’t one of the options'.replace('’', "'"))
+    expect(wrapper.find('select[aria-label="Value"]').attributes('aria-invalid')).toBe('true')
+    expect(lastValid(wrapper)).toBe(false)
+  })
+
+  it('lists unknown values in a multi-select, and a toggle drops them', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', ['new', 'gone', 'old'])) })
+    expect(wrapper.text()).toContain('Not in the options: gone, old')
+    await wrapper.find('button[aria-haspopup="listbox"]').trigger('click')
+    await flush()
+    await wrapper.findAll('[role="option"]')[1]!.trigger('click')
+    expect(lastQuery(wrapper)).toEqual(tree(r('tags', 'any_of', ['new', 'sale'])))
+  })
+
+  it('shows an error for an operator the field does not offer', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('price', 'contains', 5)) })
+    expect(wrapper.text()).toContain('Price doesn’t offer "contains"'.replace('’', "'"))
+    expect(wrapper.find('select[aria-label="Operator"]').attributes('aria-invalid')).toBe('true')
+    expect(wrapper.find('input[aria-label="Value"]').attributes('aria-invalid')).toBeUndefined()
+  })
+
+  it('outlines the active multi-select option, not just tints it', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])) })
+    await wrapper.find('button[aria-haspopup="listbox"]').trigger('click')
+    await flush()
+    expect(wrapper.findAll('[role="option"]')[0]!.classes()).toContain('outline-primary')
   })
 })

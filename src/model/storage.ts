@@ -10,10 +10,10 @@ function read<T>(key: string, fallback: T): T {
   }
 }
 
-/** A {@link StorageAdapter} whose methods all return synchronously. */
+/** A {@link StorageAdapter} with every method, all returning synchronously. */
 export interface LocalStorageAdapter extends StorageAdapter {
   load(): QueryGroup | null
-  save(query: QueryGroup): void
+  persist(query: QueryGroup): void
   save(query: QueryGroup, name: string): SavedQuery
   list(): SavedQuery[]
   remove(id: string): void
@@ -37,21 +37,16 @@ export function localStorageAdapter(namespace: string): LocalStorageAdapter {
     return Array.isArray(saved) ? (saved as SavedQuery[]) : []
   }
 
-  function save(query: QueryGroup): void
-  function save(query: QueryGroup, name: string): SavedQuery
-  function save(query: QueryGroup, name?: string): SavedQuery | void {
-    if (name === undefined) {
-      localStorage.setItem(currentKey, JSON.stringify(query))
-      return
-    }
-    const entry: SavedQuery = { id: newId(), name, query, savedAt: new Date().toISOString() }
-    localStorage.setItem(savedKey, JSON.stringify([...list(), entry]))
-    return entry
-  }
-
   return {
     load: () => read<QueryGroup | null>(currentKey, null),
-    save,
+    persist(query) {
+      localStorage.setItem(currentKey, JSON.stringify(query))
+    },
+    save(query, name) {
+      const entry: SavedQuery = { id: newId(), name, query, savedAt: new Date().toISOString() }
+      localStorage.setItem(savedKey, JSON.stringify([...list(), entry]))
+      return entry
+    },
     list,
     remove(id) {
       // Delete by id, never by position (fix 6).

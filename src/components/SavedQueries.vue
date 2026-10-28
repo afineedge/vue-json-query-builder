@@ -149,7 +149,7 @@ function formatDate(iso: string) {
           <div class="truncate font-medium">
             {{ entry.name }}
           </div>
-          <div class="text-xs opacity-70">
+          <div class="text-xs text-neutral-dark">
             {{ formatDate(entry.savedAt) }}
           </div>
         </div>

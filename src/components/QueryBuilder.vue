@@ -6,6 +6,8 @@ import {
   createGroup,
   isGroup,
   isQueryValid,
+  pruneIncomplete,
+  queryHasErrors,
   type ComponentMap,
   type ComponentName,
   type FieldDef,
@@ -38,6 +40,7 @@ const props = withDefaults(
     maxRules?: number
     title?: string
     collapsible?: boolean
+    /** Called by Run with the pruned tree: incomplete rules and empty groups removed. */
     runQuery?: (query: Group) => unknown
     showReset?: boolean
     storage?: StorageAdapter
@@ -58,12 +61,19 @@ const props = withDefaults(
   },
 )
 
-const model = defineModel<Group>()
+// `null` and `undefined` both mean "no tree"; the builder then emits a starting tree.
+const model = defineModel<Group | null>()
 const valid = defineModel<boolean>('valid', { default: false })
 
 defineSlots<{
   header?(props: { title: string | undefined; collapsed: boolean; toggle: () => void }): unknown
-  footer?(props: { run: () => Promise<void>; reset: () => void; loading: boolean; valid: boolean }): unknown
+  footer?(props: {
+    run: () => Promise<void>
+    reset: () => void
+    loading: boolean
+    valid: boolean
+    runnable: boolean
+  }): unknown
   'rule-value'?(props: Record<string, unknown>): unknown
 }>()
 
@@ -129,26 +139,54 @@ function announce(message: string) {
 
 const clone = (query: Group): Group => JSON.parse(JSON.stringify(query)) as Group
 const initialQuery = (): Group => (props.defaultQuery ? clone(props.defaultQuery) : createGroup(props.fields))
+const looksLikeGroup = (value: unknown): value is Group =>
+  typeof value === 'object' && value !== null && Array.isArray((value as Group).rules)
 
-// With no v-model, start from storage, then defaultQuery, then one blank rule.
-if (model.value === undefined) {
-  if (props.storage) {
-    Promise.resolve(props.storage.load())
+// With no tree on mount, start from storage, then defaultQuery, then one blank rule.
+let loadingStored = false
+if (model.value == null) {
+  const storage = props.storage
+  if (storage?.load) {
+    loadingStored = true
+    Promise.resolve()
+      .then(() => storage.load!())
       .catch(() => null)
       .then((stored) => {
-        if (model.value === undefined) model.value = stored ?? initialQuery()
+        loadingStored = false
+        if (model.value == null) model.value = looksLikeGroup(stored) ? stored : initialQuery()
       })
   } else {
     model.value = initialQuery()
   }
 }
 
+// If the parent clears the tree later (say, Back to a URL with no query), start over.
+watch(model, (query) => {
+  if (query == null && !loadingStored) model.value = initialQuery()
+})
+
 const isValid = computed(() => !!model.value && isQueryValid(model.value, props.fields))
 watch(isValid, (v) => (valid.value = v), { immediate: true })
 
+// Persisting is best effort: a failing adapter mustn't break editing.
 watch(model, (query) => {
-  if (query && props.storage) void props.storage.save(query)
+  const storage = props.storage
+  if (!query || !storage?.persist) return
+  Promise.resolve()
+    .then(() => storage.persist!(query))
+    .catch(() => {})
 })
+
+const pruned = computed(() => (model.value ? pruneIncomplete(model.value, props.fields) : null))
+const hasErrors = computed(() => !!model.value && queryHasErrors(model.value, props.fields))
+/** Run works whenever something is complete and nothing on screen is an error. */
+const runnable = computed(() => !!pruned.value && !hasErrors.value)
+const runHint = computed(() => {
+  if (hasErrors.value) return 'Fix the errors above to run the query.'
+  if (!pruned.value) return 'Complete a rule to run the query.'
+  return null
+})
+const runHintId = `${bodyId}-run-hint`
 
 function onUpdate(next: Group) {
   // Keep the root's row key when its replacement comes back up the tree.
@@ -165,11 +203,12 @@ function toggle() {
 
 /** Runs the query; `loading` resets even when `runQuery` rejects (fix 8). */
 async function run() {
-  if (!props.runQuery || !model.value || loading.value) return
+  const query = pruned.value
+  if (!props.runQuery || !query || !runnable.value || loading.value) return
   loading.value = true
   announce('Running query')
   try {
-    await props.runQuery(model.value)
+    await props.runQuery(query)
     announce('Query finished')
   } finally {
     loading.value = false
@@ -183,6 +222,7 @@ function reset() {
 }
 
 function load(query: Group, name: string) {
+  if (!looksLikeGroup(query)) return announce(`Couldn't load ${name}`)
   model.value = clone(query)
   announce(`Loaded ${name}`)
 }
@@ -210,7 +250,7 @@ function load(query: Group, name: string) {
           >
             <button
               type="button"
-              class="inline-flex items-center gap-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-focus"
+              class="inline-flex items-center gap-1 rounded focus:outline-hidden focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
               :aria-expanded="!collapsed"
               :aria-controls="bodyId"
               @click="toggle"
@@ -249,15 +289,21 @@ function load(query: Group, name: string) {
           :reset="reset"
           :loading="loading"
           :valid="isValid"
+          :runnable="runnable"
         >
           <div class="mt-2 flex flex-wrap items-center gap-2">
             <SavedQueries
               v-if="storage"
               :storage="storage"
-              :query="model"
+              :query="model ?? undefined"
               @load="load"
             />
-            <div class="ms-auto flex flex-wrap gap-2">
+            <div class="ms-auto flex flex-wrap items-center gap-2">
+              <span
+                v-if="runQuery && runHint && !loading"
+                :id="runHintId"
+                class="text-sm text-neutral-dark"
+              >{{ runHint }}</span>
               <component
                 :is="components.button"
                 v-if="showReset"
@@ -270,7 +316,8 @@ function load(query: Group, name: string) {
                 :is="components.button"
                 v-if="runQuery"
                 variant="primary"
-                :disabled="isDisabled || !isValid"
+                :disabled="isDisabled || !runnable"
+                :aria-describedby="runHint ? runHintId : undefined"
                 @click="run"
               >
                 {{ loading ? 'Running…' : 'Run query' }}

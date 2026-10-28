@@ -42,17 +42,46 @@ export function isBetweenReversed(rule: QueryRule, field: FieldDef | undefined):
   return min > max
 }
 
-/** Complete, using an operator the field offers, and with a `between` in order. */
+/**
+ * Something on screen the user has to fix, as opposed to a rule that is just unfinished:
+ * - `field`: the field isn't in `fields`
+ * - `operator`: the field doesn't offer this operator
+ * - `value`: a select value that isn't one of the field's `options`
+ * - `range`: a `between` whose min is above its max (or From after To)
+ */
+export type RuleProblem = 'field' | 'operator' | 'value' | 'range'
+
+/** Values of a select rule that aren't in the field's options. Blank values aren't counted. */
+export function unknownValues(rule: QueryRule, field: FieldDef | undefined): unknown[] {
+  if (field?.type !== 'select' || !field.options) return []
+  const known = new Set<unknown>(field.options.map((o) => o.value))
+  const values = Array.isArray(rule.value) ? rule.value : [rule.value]
+  return values.filter((v) => v !== null && v !== undefined && v !== '' && !known.has(v))
+}
+
+/** The problem the user has to fix in this rule, or `null`. Half-filled rules have none. */
+export function ruleProblem(rule: QueryRule, field: FieldDef | undefined): RuleProblem | null {
+  if (!field) return 'field'
+  if (!isOperator(rule.operator) || !operatorsFor(field).includes(rule.operator)) return 'operator'
+  if (unknownValues(rule, field).length) return 'value'
+  if (isBetweenReversed(rule, field)) return 'range'
+  return null
+}
+
+/** Complete and with no {@link RuleProblem}. */
 export function isRuleValid(rule: QueryRule, field: FieldDef | undefined): boolean {
-  return (
-    isRuleComplete(rule, field) &&
-    operatorsFor(field!).includes(rule.operator) &&
-    !isBetweenReversed(rule, field)
-  )
+  return isRuleComplete(rule, field) && ruleProblem(rule, field) === null
 }
 
 function findField(fields: readonly FieldDef[], name: string): FieldDef | undefined {
   return fields.find((f) => f.field === name)
+}
+
+/** Whether any rule has a {@link RuleProblem}, so the user has an error to fix (blank rules don't count). */
+export function queryHasErrors(tree: QueryGroup, fields: readonly FieldDef[]): boolean {
+  const check = (node: QueryNode): boolean =>
+    isGroup(node) ? node.rules.some(check) : ruleProblem(node, findField(fields, node.field)) !== null
+  return check(tree)
 }
 
 /** Every rule valid, every field known, and no empty group (fix 13). */

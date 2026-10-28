@@ -20,6 +20,8 @@ const listbox = ref<HTMLElement>()
 const options = computed<SelectOption[]>(() => props.options ?? [])
 const selected = computed<unknown[]>(() => (Array.isArray(props.modelValue) ? props.modelValue : []))
 const isSelected = (option: SelectOption) => selected.value.includes(option.value)
+// The active option gets an outline, not just a tint: under aria-activedescendant it's the
+// only sign of where keyboard focus is.
 
 const baseId = computed(() => props.id ?? 'vjqb-multiselect')
 const listboxId = computed(() => `${baseId.value}-listbox`)
@@ -32,11 +34,10 @@ const summary = computed(() => {
   return `${chosen.length} selected`
 })
 
+/** Toggles one option. The result keeps the options' order and drops values that aren't options. */
 function toggle(option: SelectOption) {
-  const next = isSelected(option)
-    ? selected.value.filter((v) => v !== option.value)
-    : // Keep the options' order, not the click order.
-      options.value.filter((o) => isSelected(o) || o === option).map((o) => o.value)
+  const turningOn = !isSelected(option)
+  const next = options.value.filter((o) => (o === option ? turningOn : isSelected(o))).map((o) => o.value)
   emit('update:modelValue', next)
 }
 
@@ -173,7 +174,7 @@ defineExpose({ focus: () => button.value?.focus() })
       tabindex="-1"
       :aria-label="ariaLabel"
       :aria-activedescendant="open && options.length ? optionId(activeIndex) : undefined"
-      class="absolute z-10 mt-1 max-h-60 w-full min-w-40 overflow-auto rounded border border-neutral-border bg-neutral-white py-1 text-sm text-neutral-dark shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-focus"
+      class="absolute z-10 mt-1 max-h-60 w-full min-w-40 overflow-auto rounded border border-neutral-border bg-neutral-white py-1 text-sm text-neutral-dark shadow-lg focus:outline-hidden focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
       @keydown="onListKeydown"
     >
       <li
@@ -184,7 +185,7 @@ defineExpose({ focus: () => button.value?.focus() })
         :aria-selected="isSelected(option)"
         :class="[
           'flex cursor-pointer items-center gap-2 px-2 py-1',
-          i === activeIndex ? 'bg-light' : 'hover:bg-neutral-very-light',
+          i === activeIndex ? 'bg-light outline-2 -outline-offset-2 outline-primary' : 'hover:bg-neutral-very-light',
         ]"
         @click="toggle(option)"
         @pointerenter="activeIndex = i"
@@ -200,7 +201,7 @@ defineExpose({ focus: () => button.value?.focus() })
       </li>
       <li
         v-if="!options.length"
-        class="px-2 py-1 text-neutral-dark opacity-70"
+        class="px-2 py-1 text-neutral-dark italic"
       >
         No options
       </li>

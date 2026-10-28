@@ -20,11 +20,11 @@
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
   --color-primary-active: #1e40af;
-  --color-primary-focus: #93c5fd;
+  --color-primary-focus: #1d4ed8; /* focus outlines: 6.7:1 on white */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
   --color-danger-active: #991b1b;
-  --color-neutral-border: #d1d5db;
+  --color-neutral-border: #8a919c; /* control borders: 3.2:1 on white */
   --color-neutral-light: #f3f4f6;
   --color-neutral-dark: #374151;
   --color-neutral-white: #ffffff;

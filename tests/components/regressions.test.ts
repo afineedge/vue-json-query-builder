@@ -24,22 +24,30 @@ afterEach(() => {
 })
 
 describe('D10 regressions', () => {
-  it('fix 1: rows keep their keys when a restored query is edited', async () => {
-    const restored = JSON.parse(JSON.stringify(tree(r('name', 'eq', 'a'), r('price', 'gt', 1)))) as QueryGroup
+  it('fix 1: rows of a restored query are keyed, so removing one moves the others instead of re-patching them', async () => {
+    const restored = JSON.parse(
+      JSON.stringify(tree(r('name', 'eq', 'a'), r('name', 'eq', 'b'), r('name', 'eq', 'c'))),
+    ) as QueryGroup
     const wrapper = mountBuilder({ modelValue: restored })
-    const second = wrapper.find('[aria-label="Rule 2"]').element
-    await wrapper.find('input[aria-label="Value"]').setValue('changed')
-    expect(wrapper.find('[aria-label="Rule 2"]').element).toBe(second)
+    const secondRow = wrapper.find('[aria-label="Rule 2"]').element
+    await button(wrapper, 'Remove rule 1').trigger('click')
+    // Without keys, Vue would patch rows in place by index: the old first row would show "b"
+    // and the old second row would become Rule 2.
+    expect(wrapper.find('[aria-label="Rule 1"]').element).toBe(secondRow)
+    expect((wrapper.find('[aria-label="Rule 1"] input').element as HTMLInputElement).value).toBe('b')
   })
 
   it('fix 2: never mutates the tree it was given', async () => {
     const given = deepFreeze(tree(r('name', 'eq', 'a'), tree(r('price', 'gt', 1), r('price', 'lt', 9))))
     const snapshot = JSON.stringify(given)
-    const wrapper = mountBuilder({ modelValue: given })
+    // A write to the frozen tree throws; collect it rather than rely on it surfacing.
+    const errors: unknown[] = []
+    const wrapper = mountBuilder({ modelValue: given }, { global: { config: { errorHandler: (e) => void errors.push(e) } } })
     await wrapper.find('input[aria-label="Value"]').setValue('b')
     await button(wrapper, 'Add rule').trigger('click')
     await button(wrapper, 'Remove rule 1', 1).trigger('click')
     await button(wrapper, 'Remove rule 1').trigger('click')
+    expect(errors).toEqual([])
     expect(JSON.stringify(given)).toBe(snapshot)
     expect(lastQuery(wrapper)).not.toBe(given)
   })

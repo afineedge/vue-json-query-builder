@@ -4,10 +4,11 @@ import {
   changeField,
   changeOperator,
   idFor,
-  isBetweenReversed,
   isOperator,
   operatorArity,
   operatorsFor,
+  ruleProblem,
+  unknownValues,
   type Operator,
   type QueryRule,
   type SelectOption,
@@ -41,12 +42,24 @@ const operatorOptions = computed<SelectOption[]>(() =>
   field.value ? operatorsFor(field.value).map((op) => ({ value: op, label: ctx.labels[op] })) : [],
 )
 
+const problem = computed(() => ruleProblem(props.rule, field.value))
 const error = computed(() => {
-  if (!field.value) return `Unknown field "${props.rule.field}". Choose another field or remove this rule.`
-  if (isBetweenReversed(props.rule, field.value)) {
-    return field.value.type === 'number' ? 'Min must not exceed max' : 'From must not be after To'
+  switch (problem.value) {
+    case 'field':
+      return `Unknown field "${props.rule.field}". Choose another field or remove this rule.`
+    case 'operator':
+      return `${field.value!.label} doesn't offer "${props.rule.operator}". Choose another operator.`
+    case 'value': {
+      const values = unknownValues(props.rule, field.value).map(String)
+      return values.length === 1
+        ? `"${values[0]}" isn't one of the options. Choose another value or remove this rule.`
+        : `Not in the options: ${values.join(', ')}. Change the selection or remove this rule.`
+    }
+    case 'range':
+      return field.value!.type === 'number' ? 'Min must not exceed max' : 'From must not be after To'
+    default:
+      return null
   }
-  return null
 })
 
 // Read new errors out; errors present on first render are left to aria-describedby.
@@ -71,6 +84,8 @@ const valueComponent = computed(() => {
       return ctx.components.input
   }
 })
+
+const valueInvalid = computed(() => problem.value === 'value' || problem.value === 'range')
 
 const pairLabels = computed(() => (field.value?.type === 'number' ? ['Min', 'Max'] : ['From', 'To']))
 const pairValue = computed<unknown[]>(() =>
@@ -117,8 +132,8 @@ function controlProps(id: string, ariaLabel: string, modelValue: unknown) {
     multiple: arity.value === 'array',
     id,
     ariaLabel,
-    ariaDescribedby: error.value ? errorId.value : undefined,
-    ariaInvalid: !!error.value,
+    ariaDescribedby: valueInvalid.value ? errorId.value : undefined,
+    ariaInvalid: valueInvalid.value,
     disabled: ctx.disabled,
   }
 }
@@ -165,6 +180,8 @@ function formatValue(value: unknown): string {
             :options="operatorOptions"
             :multiple="false"
             aria-label="Operator"
+            :aria-invalid="problem === 'operator'"
+            :aria-describedby="problem === 'operator' ? errorId : undefined"
             :disabled="ctx.disabled"
             @update:model-value="onOperator"
           />

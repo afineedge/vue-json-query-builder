@@ -44,7 +44,7 @@ watch(() => props.open, sync)
       </h2>
       <button
         type="button"
-        class="rounded px-1 text-lg leading-none hover:bg-neutral-light focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-focus"
+        class="rounded px-1 text-lg leading-none hover:bg-neutral-light focus:outline-hidden focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
         aria-label="Close"
         @click="emit('update:open', false)"
       >

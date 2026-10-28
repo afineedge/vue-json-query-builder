@@ -83,6 +83,12 @@ export interface ValueControlProps {
   disabled?: boolean
 }
 
+/**
+ * Props the `select` control receives: the same as {@link ValueControlProps}, except that the
+ * field and operator selects get `field: undefined` for a rule whose field isn't in `fields`.
+ */
+export type SelectControlProps = Omit<ValueControlProps, 'field'> & { field?: FieldDef }
+
 export interface SavedQuery {
   id: string
   name: string
@@ -94,10 +100,12 @@ export interface SavedQuery {
 type MaybePromise<T> = T | Promise<T>
 
 export interface StorageAdapter {
-  /** The persisted current tree, or `null` when there is none. */
-  load(): MaybePromise<QueryGroup | null>
-  /** With no name, persists the current tree. With a name, adds it to the saved list and returns the entry. */
-  save(query: QueryGroup, name?: string): MaybePromise<SavedQuery | void>
+  /** The persisted current tree, or `null` when there is none. Without it, nothing loads on mount. */
+  load?(): MaybePromise<QueryGroup | null>
+  /** Persists the current tree; called on every change. Without it, the current tree isn't kept. */
+  persist?(query: QueryGroup): MaybePromise<void>
+  /** Adds a named query to the saved list and returns the new entry. */
+  save(query: QueryGroup, name: string): MaybePromise<SavedQuery>
   list(): MaybePromise<SavedQuery[]>
   remove(id: string): MaybePromise<void>
 }

@@ -9,7 +9,9 @@ import {
   isRuleComplete,
   isRuleValid,
   pruneIncomplete,
+  queryHasErrors,
   ruleFor,
+  ruleProblem,
 } from '../../src/model'
 import { field, fields } from './fixtures'
 
@@ -165,5 +167,33 @@ describe('changeField', () => {
   it('resets the operator to the new field first and the value to empty', () => {
     expect(changeField(r('name', 'contains', 'abc'), field('tags'))).toEqual(r('tags', 'any_of', []))
     expect(changeField(r('state', 'in', ['MD']), field('price'))).toEqual(r('price', 'eq', null))
+  })
+})
+
+describe('ruleProblem', () => {
+  const tree = (...rules: QueryGroup['rules']): QueryGroup => ({ condition: 'and', rules })
+
+  it('names what the user has to fix, and nothing for a half-filled rule', () => {
+    expect(ruleProblem(r('ghost', 'eq', 'x'), undefined)).toBe('field')
+    expect(ruleProblem(r('price', 'contains', 5), field('price'))).toBe('operator')
+    expect(ruleProblem(r('state', 'eq', 'TX'), field('state'))).toBe('value')
+    expect(ruleProblem(r('tags', 'any_of', ['new', 'gone']), field('tags'))).toBe('value')
+    expect(ruleProblem(r('price', 'between', [9, 1]), field('price'))).toBe('range')
+    expect(ruleProblem(r('price', 'between', [9, null]), field('price'))).toBeNull()
+    expect(ruleProblem(r('state', 'eq', null), field('state'))).toBeNull()
+  })
+
+  it('skips the options check for a select field without options', () => {
+    expect(isRuleValid(r('remote', 'eq', 'anything'), { field: 'remote', label: 'Remote', type: 'select' })).toBe(true)
+  })
+
+  it('makes a rule with an unknown select value invalid and pruned', () => {
+    expect(isRuleValid(r('state', 'eq', 'TX'), field('state'))).toBe(false)
+    expect(pruneIncomplete(tree(r('state', 'eq', 'TX'), r('state', 'eq', 'MD')), fields)).toEqual(tree(r('state', 'eq', 'MD')))
+  })
+
+  it('queryHasErrors ignores blanks and finds nested problems', () => {
+    expect(queryHasErrors(tree(r('name', 'eq', null), tree(r('price', 'gt', null))), fields)).toBe(false)
+    expect(queryHasErrors(tree(r('name', 'eq', 'a'), tree(r('price', 'between', [5, 1]))), fields)).toBe(true)
   })
 })

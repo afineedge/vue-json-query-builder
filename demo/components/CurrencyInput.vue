@@ -31,7 +31,7 @@ defineExpose({ focus: () => input.value?.focus() })
 </script>
 
 <template>
-  <div class="flex items-center rounded border border-neutral-border bg-neutral-white focus-within:ring-2 focus-within:ring-primary-focus">
+  <div class="flex items-center rounded border border-neutral-border bg-neutral-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-focus has-[input[aria-invalid=true]]:border-danger has-[input:disabled]:bg-neutral-light">
     <span
       class="ps-2 text-sm text-neutral-dark"
       aria-hidden="true"

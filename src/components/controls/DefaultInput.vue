@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { ValueControlProps } from '../../model'
 import { controlClass } from './styles'
 
@@ -23,11 +23,10 @@ const type = computed(() => {
 
 const isNumber = computed(() => props.field?.type === 'number')
 
-const displayed = computed(() => {
-  const value = props.modelValue
+function format(value: unknown): string {
   if (Array.isArray(value)) return value.join(', ')
   return value === null || value === undefined ? '' : String(value)
-})
+}
 
 /** Number fields emit numbers, or `null` when blank (fix 10). */
 function parse(raw: string): unknown {
@@ -37,19 +36,36 @@ function parse(raw: string): unknown {
   return Number.isFinite(n) ? n : null
 }
 
-function onInput(event: Event) {
-  if (props.multiple) return
-  emit('update:modelValue', parse((event.target as HTMLInputElement).value))
-}
-
-// A list commits on change, so typing a trailing comma doesn't get reformatted away.
-function onChange(event: Event) {
-  if (!props.multiple) return
-  const parts = (event.target as HTMLInputElement).value
+function parseList(raw: string): unknown[] {
+  return raw
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-  emit('update:modelValue', parts.map(parse).filter((v) => v !== null))
+    .map(parse)
+    .filter((v) => v !== null)
+}
+
+/**
+ * What the user typed. It's only replaced when the value changes to something the text
+ * doesn't already mean, so "1.0" or "1." mid-way through "1.05" isn't rewritten to "1".
+ */
+const draft = ref(format(props.modelValue))
+watch(
+  () => props.modelValue,
+  (value) => {
+    const meant = props.multiple ? parseList(draft.value) : parse(draft.value)
+    if (JSON.stringify(meant) !== JSON.stringify(value ?? null)) draft.value = format(value)
+  },
+)
+
+function onInput(event: Event) {
+  draft.value = (event.target as HTMLInputElement).value
+  if (!props.multiple) emit('update:modelValue', parse(draft.value))
+}
+
+// A list commits on change, so typing a trailing comma doesn't get reformatted away.
+function onChange() {
+  if (props.multiple) emit('update:modelValue', parseList(draft.value))
 }
 </script>
 
@@ -59,7 +75,7 @@ function onChange(event: Event) {
     ref="el"
     :type="type"
     :class="controlClass"
-    :value="displayed"
+    :value="draft"
     :placeholder="field?.placeholder ?? (multiple ? 'Comma-separated values' : undefined)"
     :inputmode="isNumber ? 'decimal' : undefined"
     :disabled="disabled"

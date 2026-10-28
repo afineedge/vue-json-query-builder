@@ -15,7 +15,7 @@ describe('localStorageAdapter', () => {
 
   it('round-trips the current tree under the namespaced key', () => {
     const storage = localStorageAdapter('test')
-    storage.save(query('a'))
+    storage.persist(query('a'))
     expect(storage.load()).toEqual(query('a'))
     expect(localStorage.getItem('vue-json-query-builder:test:current')).toBe(JSON.stringify(query('a')))
   })
@@ -31,7 +31,7 @@ describe('localStorageAdapter', () => {
   })
 
   it('keeps namespaces apart', () => {
-    localStorageAdapter('one').save(query('a'))
+    localStorageAdapter('one').persist(query('a'))
     expect(localStorageAdapter('two').load()).toBeNull()
   })
 

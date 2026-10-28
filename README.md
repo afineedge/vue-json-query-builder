@@ -101,6 +101,16 @@ A group holds a condition and a list of rules or nested groups. A rule holds a f
 
 The tree contains only these properties. Row keys are tracked outside it, so the JSON stays clean.
 
+### Complete, valid and errors
+
+- A rule is **complete** when it has every value its operator needs.
+- A rule is **valid** when it's complete and has no error.
+- A half-filled rule is never an error. These four are errors, and each one shows an inline message on its rule:
+  - The field isn't in `fields`.
+  - The field doesn't offer the operator.
+  - A select value isn't one of the field's `options`. Leave `options` out, for example when the choices load remotely, to skip this check.
+  - A `between` range is reversed: min above max, or From after To.
+
 ## Field definitions
 
 | Property | Type | Description |
@@ -148,7 +158,7 @@ Changing a rule's operator keeps its value when the new operator takes the same 
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `v-model` | `QueryGroup` | | The query tree. |
+| `v-model` | `QueryGroup \| null` | | The query tree. `null` or `undefined` means no tree: the builder then emits a starting tree, both on mount and if you clear it later. |
 | `v-model:valid` | `boolean` | | Whether every rule is complete and valid, every field is known, and no group is empty. |
 | `fields` | `FieldDef[]` | required | The fields users can query. |
 | `defaultQuery` | `QueryGroup` | | The starting tree when there's no `v-model` value, and what Reset restores. |
@@ -158,7 +168,7 @@ Changing a rule's operator keeps its value when the new operator takes the same 
 | `maxRules` | `number` | `25` | Rules allowed in the whole tree. Add rule and Add group are disabled at this count. |
 | `title` | `string` | | Shows a header with this title. |
 | `collapsible` | `boolean` | `false` | Lets users collapse the builder from its header. Needs `title`. |
-| `runQuery` | `(query: QueryGroup) => unknown` | | Shows a Run query button. While its promise is pending, the builder is disabled and inert. |
+| `runQuery` | `(query: QueryGroup) => unknown` | | Shows a Run query button. Run sends the pruned tree, and works whenever a rule is complete and no rule has an error. Otherwise it's disabled, with a hint saying why. While its promise is pending, the builder is disabled and inert. |
 | `showReset` | `boolean` | `false` | Shows a Reset button. Needs `defaultQuery`. |
 | `storage` | `StorageAdapter` | | Persists the current tree and shows the save and load buttons. See [Storage](#storage). |
 | `disabled` | `boolean` | `false` | Disables every control. |
@@ -170,23 +180,51 @@ The header, footer and their buttons appear only when you pass the props they ne
 | Slot | Scope | Replaces |
 | --- | --- | --- |
 | `header` | `{ title, collapsed, toggle }` | The default header. |
-| `footer` | `{ run, reset, loading, valid }` | The default footer (save and load buttons, Reset, Run query). |
+| `footer` | `{ run, reset, loading, valid, runnable }` | The default footer (save and load buttons, Reset, Run query). `run` does nothing unless `runnable` is true. |
 | `rule-value` | The [value control props](#value-controls) plus `rule` and `update(value)` | Every rule's value control. |
 
 ## Keeping the query in the URL
 
-Because the builder is fully controlled, you can replace `v-model` at any time, for example when the user navigates back. Act on the pruned tree, so a half-filled rule never counts as an error:
+Because the builder is fully controlled, you can replace `v-model` at any time, for example when the user navigates back. Store the tree as JSON, so numbers stay numbers. Act on the pruned tree, so a half-filled rule never counts as an error.
+
+Writing to the URL and reading it back need one guard. Writing the pruned tree to the URL triggers your route watcher. If that watcher then assigns the URL's tree to `v-model`, it does two things:
+
+- It replaces what the user is typing with the pruned copy, so their half-filled rule disappears.
+- It gives the builder a brand-new object, so every row remounts and focus is lost.
+
+To avoid both, only assign the URL's tree when it differs from what the builder already has:
 
 ```ts
-import { pruneIncomplete } from 'vue-json-query-builder'
+import { pruneIncomplete, type QueryGroup } from 'vue-json-query-builder'
 
+const query = ref<QueryGroup | null>(null)
+const pruned = (tree: QueryGroup | null) => (tree ? pruneIncomplete(tree, fields) : null)
+
+// Builder → URL
 watch(query, (tree) => {
-  const usable = tree && pruneIncomplete(tree, fields)
+  const usable = pruned(tree)
   router.replace({ query: usable ? { q: JSON.stringify(usable) } : {} })
 })
+
+// URL → builder, for Back/Forward and shared links
+watch(
+  () => route.query.q,
+  (q) => {
+    let fromUrl: QueryGroup | null = null
+    try {
+      fromUrl = typeof q === 'string' ? JSON.parse(q) : null
+    } catch {
+      // A hand-edited or truncated URL: treat it as no query.
+    }
+    if (JSON.stringify(fromUrl) !== JSON.stringify(pruned(query.value))) query.value = fromUrl
+  },
+  { immediate: true },
+)
 ```
 
-A reversed `between`, such as a min above its max, shows an inline error and makes the query invalid.
+Setting `query` to `null` is safe: the builder emits its starting tree.
+
+`pruneIncomplete` also drops rules that have an error. To hold off while the user has an error on screen, check `queryHasErrors(tree, fields)`.
 
 ## Theme tokens
 
@@ -195,14 +233,14 @@ The components use only these color tokens. Define them in your app's `@theme`, 
 | Token | Used for |
 | --- | --- |
 | `--color-primary`, `-hover`, `-active` | Primary buttons, the selected All/Any option, checked options |
-| `--color-primary-focus` | Focus rings |
+| `--color-primary-focus` | Focus outlines (needs 3:1 against your page background) |
 | `--color-danger`, `-hover`, `-active` | Remove buttons and error text |
-| `--color-neutral-border` | Borders |
+| `--color-neutral-border` | Control, rule and group borders (needs 3:1 against white to meet WCAG 1.4.11) |
 | `--color-neutral-white` | Control and rule backgrounds |
 | `--color-neutral-very-light` | The root group background |
 | `--color-neutral-light` | Nested group backgrounds, hover states |
 | `--color-neutral-dark` | Text |
-| `--color-light` | The active option in the multi-select |
+| `--color-light` | The active option's background in the multi-select (it also gets a `primary` outline) |
 
 The theme also sets `--radius`, `--radius-sm` and the `--text-xs` to `--text-lg` sizes, matching Tailwind's defaults. Because it uses `@theme default`, any token your app defines wins.
 
@@ -240,7 +278,7 @@ If you give a text, number, date or time field a list operator such as `in`, it 
 
 ### Value controls
 
-Value controls (and the `select` control) receive these props and emit `update:modelValue`:
+Value controls receive these props (`ValueControlProps`) and emit `update:modelValue`:
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -252,14 +290,24 @@ Value controls (and the `select` control) receive these props and emit `update:m
 | `id` | `string` | A unique id for the focusable element. |
 | `ariaLabel` | `string` | The accessible name: Field, Operator, Value, Min, Max, From or To. Put it on the focusable element. |
 | `ariaDescribedby` | `string` | The id of the rule's error message, when there is one. |
-| `ariaInvalid` | `boolean` | Whether the rule has an error. |
+| `ariaInvalid` | `boolean` | Whether this control's value is the problem (an unknown option or a reversed range). |
 | `disabled` | `boolean` | Whether the control is disabled. |
 
-If a number control emits strings, the builder converts them to numbers (or `null` when blank).
+Emit values in these shapes. Anything else leaves the rule incomplete, so it's silently pruned:
+
+| Field type | Emit |
+| --- | --- |
+| `text` | A string |
+| `number` | A finite number, or `null` when blank. A plain numeric string such as `"80000"` is converted. A formatted one such as `"80,000"` becomes `null`, so strip separators in your control (see `demo/components/CurrencyInput.vue`). |
+| `date` | A `YYYY-MM-DD` string. Not a `Date` object. Other formats also break the reversed-range check. |
+| `time` | An `HH:MM` string (24-hour) |
+| `select` | One option's `value`, or an array of them for list operators |
+
+The `select` control receives the same props (`SelectControlProps`), with one difference. For a rule whose field isn't in `fields`, the field and operator selects get `field: undefined`, so read it with `props.field?.…`.
 
 ### Buttons and modals
 
-- **`button`** receives `variant` (`'primary' | 'secondary' | 'danger'`), `disabled`, `ariaLabel` and `type`. Its default slot is the label, and it emits `click`.
+- **`button`** receives `variant` (`'primary' | 'secondary' | 'danger'`), `disabled`, `ariaLabel` and `type`. Its default slot is the label, and it emits `click`. Pass other attributes (such as `aria-describedby`) through to the `<button>`, which Vue does by default for a single-root component.
 - **`modal`** receives `open` and `title`, has a default slot for the body and a `footer` slot, and emits `update:open` with `false` when the user dismisses it.
 
 ### Focus
@@ -304,18 +352,24 @@ defineExpose({ focus: () => inner.value?.focus() })
 | --- | --- |
 | `isQueryValid(tree, fields)` | `true` when every rule is complete and valid, every field is known, and no group is empty. |
 | `isRuleComplete(rule, field)` | `true` when the rule has every value its operator needs. Numbers must be finite. |
-| `isRuleValid(rule, field)` | Complete, using an operator the field offers, with `between` in order. |
+| `isRuleValid(rule, field)` | Complete, with no error. |
+| `ruleProblem(rule, field)` | The rule's error, `'field'`, `'operator'`, `'value'` or `'range'`, or `null`. A half-filled rule has none. |
+| `queryHasErrors(tree, fields)` | `true` when any rule has an error the user must fix. Blank rules don't count. |
+| `isBetweenReversed(rule, field)` | `true` for a complete `between` whose min is above its max. |
+| `unknownValues(rule, field)` | A select rule's values that aren't in the field's options. |
+| `createGroup(fields)` | An AND group with one blank rule for the first field. |
+| `ruleFor(field)` | A blank rule for a field. |
 | `pruneIncomplete(tree, fields)` | The tree without incomplete or invalid rules and the groups they leave empty, or `null` if nothing is left. |
 | `operatorsFor(field)` | The operators a field offers, in order. |
 | `migrateV0Query(v0)` | Converts a 0.1.x tree to v1. Throws on an unknown operator. |
 | `localStorageAdapter(namespace)` | A `StorageAdapter` backed by `localStorage`. |
 | `DEFAULT_OPERATORS`, `DEFAULT_OPERATOR_LABELS`, `MULTI_VALUE_OPERATORS` | The built-in operator lists, labels and list operators. |
 
-All the types (`QueryGroup`, `QueryRule`, `FieldDef`, `Operator`, `ComponentMap`, `ValueControlProps`, `StorageAdapter`, `SavedQuery` and more) are exported too.
+All the types (`QueryGroup`, `QueryRule`, `FieldDef`, `Operator`, `ComponentMap`, `ValueControlProps`, `SelectControlProps`, `StorageAdapter`, `LocalStorageAdapter`, `SavedQuery` and more) are exported too.
 
 ## Storage
 
-Pass a `storage` adapter to save the current tree as it changes, load it on mount when there's no `v-model` value, and let users save and load named queries.
+Pass a `storage` adapter to let users save and load named queries. It can also keep the current tree as it changes and load it on mount when there's no `v-model` value.
 
 ```ts
 import { localStorageAdapter } from 'vue-json-query-builder'
@@ -327,14 +381,19 @@ To store queries somewhere else, write your own adapter. Each method can return 
 
 ```ts
 interface StorageAdapter {
-  load(): QueryGroup | null | Promise<QueryGroup | null>
-  save(query: QueryGroup, name?: string): void | SavedQuery | Promise<void | SavedQuery>
+  load?(): QueryGroup | null | Promise<QueryGroup | null> // the current tree, read on mount
+  persist?(query: QueryGroup): void | Promise<void> // the current tree, written on every change
+  save(query: QueryGroup, name: string): SavedQuery | Promise<SavedQuery> // a named entry
   list(): SavedQuery[] | Promise<SavedQuery[]>
   remove(id: string): void | Promise<void>
 }
 ```
 
-`save` without a name stores the current tree. With a name, it adds an entry `{ id, name, query, savedAt }` to the saved list. `remove` deletes by `id`.
+- `load` and `persist` are optional. Leave them out if you only want named queries.
+- `persist` runs on every change, so debounce it in a server-backed adapter. Its errors are ignored, so they never break editing.
+- `save` adds an entry `{ id, name, query, savedAt }`.
+- `remove` deletes by `id`.
+- If `load` returns something that isn't a query, the builder uses its starting tree instead.
 
 ## Accessibility
 
@@ -343,9 +402,15 @@ interface StorageAdapter {
 - Every control has an accessible name, and each remove button is named, for example "Remove rule 2".
 - Adding a rule or group moves focus to its field select. Removing one moves focus to the previous sibling, or to the group's Add rule button.
 - Errors set `aria-invalid` and point to their message with `aria-describedby`.
+- Focus indicators are outlines with an offset, so they still show in Windows High Contrast (forced-colors) mode. The `theme.css` fallbacks meet 3:1 for focus outlines and control borders.
 - One polite live region per builder announces added and removed rules and groups, new errors, and save, load, reset and run actions.
 - The multi-select follows the listbox pattern: the arrow keys, Home and End, and typeahead move through the options, Space or Enter toggles one, and Escape closes the list and returns focus to its button.
 - While `runQuery` is pending, the tree is `inert`, so keyboard input can't change it.
+
+## Limits
+
+- **Client-side only.** Element ids are generated at runtime, so server-rendered markup won't match on hydration. Render the builder only on the client, for example inside `<ClientOnly>` in Nuxt.
+- **The tree must keep its identity.** Row keys follow the objects in the tree. Hand back the objects the builder emitted (see [Keeping the query in the URL](#keeping-the-query-in-the-url)). Re-parsing the tree on every change remounts every row.
 
 ## Migrating from 0.1.x
 
@@ -360,6 +425,7 @@ v1 is a rewrite for Vue 3, and nearly every API changed.
 | Rules: `{ id, operator: '=', value }` | Rules: `{ field, operator: 'eq', value }` |
 | `month`, `phone` and `email` types | `text` with `inputType: 'email'` or `'tel'`. `month` is gone. |
 | `storage="name"` string | `storage` adapter, for example `localStorageAdapter('name')` |
+| Any select value accepted | A select value must be one of the field's `options`, or the rule shows an error |
 | Slots per type (`number`, `select`, ...) | `components` prop, a field's `component`, or the `rule-value` slot |
 
 Convert saved 0.1.x trees with `migrateV0Query`:
