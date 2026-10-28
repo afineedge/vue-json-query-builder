@@ -69,9 +69,9 @@ Plan for rewriting vue-json-query-builder as v1: Vue 3, TypeScript, Tailwind v4.
 
 ### Milestone 5: theme, demo, docs
 
-- [ ] `src/theme.css`: `@theme default` for every token the templates use (`--color-primary`, `-hover`, `-active`, `-focus`, `--color-danger`, `-hover`, `--color-neutral-border`, `--color-neutral-light`, `--color-neutral-dark`, `--color-neutral-white`, `--color-light`, radius and font-size tokens). Derive the list with `grep -rhoE '(bg|text|border|ring|outline|fill)-[a-z-]+' src/components | sort -u` and keep it in sync.
-- [ ] Demo (`demo/`, Vite app): the 0.1.x demo's fields migrated to v1, a "Generated query" panel, `localStorageAdapter`, Run/Reset, and a toggle between default controls and a sample custom control.
-- [ ] README: install; Tailwind v4 setup (`@import "vue-json-query-builder/theme.css"` standalone, or `@source "../node_modules/vue-json-query-builder/dist"` when the app defines the tokens); tree and field formats; operator table; `components` contract (D8); helpers; storage adapter; accessibility notes; "Migrating from 0.1.x".
+- [x] `src/theme.css`: `@theme default` for every token the templates use (`--color-primary`, `-hover`, `-active`, `-focus`, `--color-danger`, `-hover`, `--color-neutral-border`, `--color-neutral-light`, `--color-neutral-dark`, `--color-neutral-white`, `--color-light`, radius and font-size tokens). Derive the list with `grep -rhoE '(bg|text|border|ring|outline|fill)-[a-z-]+' src/components | sort -u` and keep it in sync.
+- [x] Demo (`demo/`, Vite app): the 0.1.x demo's fields migrated to v1, a "Generated query" panel, `localStorageAdapter`, Run/Reset, and a toggle between default controls and a sample custom control.
+- [x] README: install; Tailwind v4 setup (`@import "vue-json-query-builder/theme.css"` standalone, or `@source "../node_modules/vue-json-query-builder/dist"` when the app defines the tokens); tree and field formats; operator table; `components` contract (D8); helpers; storage adapter; accessibility notes; "Migrating from 0.1.x".
 
 ### Milestone 6: release
 
