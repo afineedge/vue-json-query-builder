@@ -12,6 +12,8 @@ export interface BuilderContext {
   readonly ruleCount: number
   readonly disabled: boolean
   readonly ruleValueSlot: Slot | undefined
+  /** Reads a message out through the builder's polite live region. */
+  announce(message: string): void
 }
 
 export const builderContextKey: InjectionKey<BuilderContext> = Symbol('vue-json-query-builder')

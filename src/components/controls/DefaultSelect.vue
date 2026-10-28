@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ValueControlProps } from '../../model'
 import { controlClass } from './styles'
 
 const props = defineProps<Partial<ValueControlProps>>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+
+const el = ref<HTMLSelectElement>()
+defineExpose({ focus: () => el.value?.focus() })
 
 const options = computed(() => props.options ?? [])
 // Native <select> values are strings; map through the index so number option values survive.
@@ -19,6 +22,7 @@ function onChange(event: Event) {
 <template>
   <select
     :id="id"
+    ref="el"
     :class="controlClass"
     :value="selectedIndex"
     :disabled="disabled"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { buttonClass, buttonVariants, type ButtonVariant } from './styles'
 
 /**
@@ -15,10 +16,14 @@ withDefaults(
   { variant: 'secondary', disabled: false, ariaLabel: undefined, type: 'button' },
 )
 defineEmits<{ click: [event: MouseEvent] }>()
+
+const el = ref<HTMLButtonElement>()
+defineExpose({ focus: () => el.value?.focus() })
 </script>
 
 <template>
   <button
+    ref="el"
     :type="type"
     :class="[buttonClass, buttonVariants[variant]]"
     :disabled="disabled"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   changeField,
   changeOperator,
@@ -13,6 +13,7 @@ import {
   type SelectOption,
 } from '../model'
 import { useBuilderContext } from './context'
+import { focusRef } from './focus'
 import RenderSlot from './RenderSlot'
 
 const props = defineProps<{
@@ -23,6 +24,9 @@ const props = defineProps<{
 const emit = defineEmits<{ update: [rule: QueryRule]; remove: [] }>()
 
 const ctx = useBuilderContext()
+const fieldControl = ref()
+
+defineExpose({ focus: () => focusRef(fieldControl.value) })
 
 const baseId = computed(() => `vjqb-${idFor(props.rule)}`)
 const errorId = computed(() => `${baseId.value}-error`)
@@ -43,6 +47,11 @@ const error = computed(() => {
     return field.value.type === 'number' ? 'Min must not exceed max' : 'From must not be after To'
   }
   return null
+})
+
+// Read new errors out; errors present on first render are left to aria-describedby.
+watch(error, (message, previous) => {
+  if (message && message !== previous) ctx.announce(message)
 })
 
 const valueComponent = computed(() => {
@@ -131,6 +140,7 @@ function formatValue(value: unknown): string {
         <component
           :is="ctx.components.select"
           :id="`${baseId}-field`"
+          ref="fieldControl"
           :model-value="rule.field"
           :field="field"
           :operator="rule.operator"

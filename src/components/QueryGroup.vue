@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   createGroup,
   idFor,
@@ -13,6 +13,7 @@ import {
   type QueryNode,
 } from '../model'
 import { useBuilderContext } from './context'
+import { focusRef } from './focus'
 import QueryRule from './QueryRule.vue'
 
 const props = defineProps<{
@@ -39,17 +40,68 @@ const conditions: { value: Condition; label: string }[] = [
   { value: 'or', label: 'Any' },
 ]
 
+// Focus targets, all template refs: child rows by node id, the radios, and Add rule.
+const childRefs = new Map<string, unknown>()
+const radioRefs = ref<HTMLInputElement[]>([])
+const addRuleButton = ref()
+
+function setChildRef(node: QueryNode, el: unknown) {
+  if (el) childRefs.set(idFor(node), el)
+  else childRefs.delete(idFor(node))
+}
+
+/** Where focus goes once the parent hands back the updated group. */
+type PendingFocus = { child: number } | 'addRule'
+let pendingFocus: PendingFocus | null = null
+
+watch(
+  () => props.group,
+  (group) => {
+    const target = pendingFocus
+    pendingFocus = null
+    if (target === 'addRule') focusRef(addRuleButton.value)
+    else if (target) {
+      const node = group.rules[target.child]
+      if (node) focusRef(childRefs.get(idFor(node)))
+    }
+  },
+  { flush: 'post' },
+)
+
+/** Focuses this group's first rule, or its Add rule button when it has none. */
+function focus() {
+  const first = props.group.rules[0]
+  if (!first || !focusRef(childRefs.get(idFor(first)))) focusRef(addRuleButton.value)
+}
+defineExpose({ focus })
+
 function setCondition(condition: Condition) {
   if (condition !== props.group.condition) emit('update', { ...props.group, condition })
 }
 
+/** Arrow keys move between All and Any and select it, like a native radio group. */
+function onRadioKeydown(event: KeyboardEvent, index: number) {
+  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+  if (!step || ctx.disabled) return
+  event.preventDefault()
+  const next = (index + step + conditions.length) % conditions.length
+  setCondition(conditions[next]!.value)
+  radioRefs.value[next]?.focus()
+}
+
 function addRule() {
   const first = ctx.fields[0]
-  if (canAdd.value && first) emit('update', insertNode(props.group, [], ruleFor(first)))
+  if (!canAdd.value || !first) return
+  pendingFocus = { child: props.group.rules.length }
+  emit('update', insertNode(props.group, [], ruleFor(first)))
+  ctx.announce('Rule added')
 }
 
 function addGroup() {
-  if (canAdd.value) emit('update', insertNode(props.group, [], createGroup(ctx.fields)))
+  if (!canAdd.value) return
+  pendingFocus = { child: props.group.rules.length }
+  emit('update', insertNode(props.group, [], createGroup(ctx.fields)))
+  ctx.announce('Group added')
 }
 
 function updateChild(index: number, node: QueryNode) {
@@ -58,12 +110,16 @@ function updateChild(index: number, node: QueryNode) {
 
 /**
  * Removing the last child of a nested group removes the group; at the root it leaves one
- * blank rule, so the builder never shows an empty group (fix 13).
+ * blank rule, so the builder never shows an empty group (fix 13). Focus moves to the
+ * previous sibling, else this group's Add rule button.
  */
 function removeChild(index: number) {
-  if (props.group.rules.length > 1) return emit('update', removeNode(props.group, [index]))
-  if (!isRoot.value) return emit('remove')
-  emit('update', { ...props.group, rules: createGroup(ctx.fields).rules })
+  const removed = props.group.rules[index]
+  if (props.group.rules.length === 1 && !isRoot.value) return emit('remove')
+  pendingFocus = index > 0 ? { child: index - 1 } : 'addRule'
+  if (props.group.rules.length > 1) emit('update', removeNode(props.group, [index]))
+  else emit('update', { ...props.group, rules: createGroup(ctx.fields).rules })
+  ctx.announce(removed && isGroup(removed) ? 'Group removed' : 'Rule removed')
 }
 </script>
 
@@ -83,7 +139,7 @@ function removeChild(index: number) {
         class="inline-flex overflow-hidden rounded border border-neutral-border"
       >
         <label
-          v-for="c in conditions"
+          v-for="(c, i) in conditions"
           :key="c.value"
           :class="[
             'cursor-pointer px-3 py-1 text-sm font-medium select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-focus has-[:focus-visible]:ring-inset',
@@ -94,6 +150,7 @@ function removeChild(index: number) {
           ]"
         >
           <input
+            ref="radioRefs"
             type="radio"
             class="sr-only"
             :name="`${baseId}-condition`"
@@ -101,6 +158,7 @@ function removeChild(index: number) {
             :checked="group.condition === c.value"
             :disabled="ctx.disabled"
             @change="setCondition(c.value)"
+            @keydown="onRadioKeydown($event, i)"
           >
           {{ c.label }}
         </label>
@@ -110,6 +168,7 @@ function removeChild(index: number) {
       <div class="ms-auto flex flex-wrap gap-2">
         <component
           :is="ctx.components.button"
+          ref="addRuleButton"
           :disabled="!canAdd"
           :aria-describedby="addHint ? `${baseId}-hint` : undefined"
           @click="addRule"
@@ -154,6 +213,7 @@ function removeChild(index: number) {
       >
         <QueryGroup
           v-if="isGroup(node)"
+          :ref="(el) => setChildRef(node, el)"
           :group="node"
           :depth="depth + 1"
           @update="updateChild(i, $event)"
@@ -161,6 +221,7 @@ function removeChild(index: number) {
         />
         <QueryRule
           v-else
+          :ref="(el) => setChildRef(node, el)"
           :rule="node"
           :index="i + 1"
           @update="updateChild(i, $event)"

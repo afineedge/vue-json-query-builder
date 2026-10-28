@@ -5,7 +5,7 @@ import { useBuilderContext } from './context'
 import { controlClass } from './controls/styles'
 
 const props = defineProps<{ storage: StorageAdapter; query: QueryGroup | undefined }>()
-const emit = defineEmits<{ load: [query: QueryGroup] }>()
+const emit = defineEmits<{ load: [query: QueryGroup, name: string] }>()
 
 const ctx = useBuilderContext()
 
@@ -31,6 +31,7 @@ async function save() {
   if (nameError.value || !props.query) return
   await props.storage.save(props.query, trimmedName.value)
   saveOpen.value = false
+  ctx.announce(`Saved ${trimmedName.value}`)
 }
 
 async function refresh() {
@@ -44,13 +45,14 @@ async function openList() {
 }
 
 function load(entry: SavedQuery) {
-  emit('load', entry.query)
+  emit('load', entry.query, entry.name)
   listOpen.value = false
 }
 
 /** Deletes by the saved query's id, never by position (fix 6). */
-async function remove(id: string) {
-  await props.storage.remove(id)
+async function remove(entry: SavedQuery) {
+  await props.storage.remove(entry.id)
+  ctx.announce(`Deleted ${entry.name}`)
   confirmingId.value = null
   await refresh()
 }
@@ -162,7 +164,7 @@ function formatDate(iso: string) {
           <component
             :is="ctx.components.button"
             variant="danger"
-            @click="remove(entry.id)"
+            @click="remove(entry)"
           >
             Delete
           </component>

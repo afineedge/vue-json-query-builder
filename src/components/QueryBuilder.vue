@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, ref, useSlots, watch } from 'vue'
+import { computed, nextTick, provide, ref, useSlots, watch } from 'vue'
 import {
   DEFAULT_OPERATOR_LABELS,
   carryId,
@@ -70,6 +70,7 @@ defineSlots<{
 const slots = useSlots()
 const loading = ref(false)
 const collapsed = ref(false)
+const liveMessage = ref('')
 const bodyId = `vjqb-body-${Math.random().toString(36).slice(2, 10)}`
 
 const DEFAULT_COMPONENTS: Record<ComponentName, BuilderContext['components'][ComponentName]> = {
@@ -117,7 +118,14 @@ provide(builderContextKey, {
   get ruleValueSlot() {
     return slots['rule-value']
   },
+  announce,
 })
+
+/** Clears, then sets, the live region so a repeated message is still read out. */
+function announce(message: string) {
+  liveMessage.value = ''
+  void nextTick(() => (liveMessage.value = message))
+}
 
 const clone = (query: Group): Group => JSON.parse(JSON.stringify(query)) as Group
 const initialQuery = (): Group => (props.defaultQuery ? clone(props.defaultQuery) : createGroup(props.fields))
@@ -159,19 +167,24 @@ function toggle() {
 async function run() {
   if (!props.runQuery || !model.value || loading.value) return
   loading.value = true
+  announce('Running query')
   try {
     await props.runQuery(model.value)
+    announce('Query finished')
   } finally {
     loading.value = false
   }
 }
 
 function reset() {
-  if (props.defaultQuery) model.value = clone(props.defaultQuery)
+  if (!props.defaultQuery) return
+  model.value = clone(props.defaultQuery)
+  announce('Query reset')
 }
 
-function load(query: Group) {
+function load(query: Group, name: string) {
   model.value = clone(query)
+  announce(`Loaded ${name}`)
 }
 </script>
 
@@ -266,6 +279,15 @@ function load(query: Group) {
           </div>
         </slot>
       </template>
+    </div>
+
+    <div
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ liveMessage }}
     </div>
   </div>
 </template>

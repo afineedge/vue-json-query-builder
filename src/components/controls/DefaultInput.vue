@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ValueControlProps } from '../../model'
 import { controlClass } from './styles'
 
 const props = defineProps<Partial<ValueControlProps>>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+
+const el = ref<HTMLInputElement>()
+defineExpose({ focus: () => el.value?.focus() })
 
 const type = computed(() => {
   switch (props.field?.type) {
@@ -53,6 +56,7 @@ function onChange(event: Event) {
 <template>
   <input
     :id="id"
+    ref="el"
     :type="type"
     :class="controlClass"
     :value="displayed"

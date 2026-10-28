@@ -63,9 +63,9 @@ Plan for rewriting vue-json-query-builder as v1: Vue 3, TypeScript, Tailwind v4.
 
 ### Milestone 4: accessibility (D11)
 
-- [ ] Group and rule `role="group"` labels, visually hidden control labels (`sr-only`), remove-button labels, `radiogroup` with arrow-key handling.
-- [ ] Focus: a new rule/group focuses its field select; removal focuses the previous sibling, else the parent's Add rule. Implemented through template refs, not DOM queries.
-- [ ] Errors: `aria-invalid`, `aria-describedby` to the error text, one polite `aria-live` region per builder.
+- [x] Group and rule `role="group"` labels, visually hidden control labels (`sr-only`), remove-button labels, `radiogroup` with arrow-key handling.
+- [x] Focus: a new rule/group focuses its field select; removal focuses the previous sibling, else the parent's Add rule. Implemented through template refs, not DOM queries.
+- [x] Errors: `aria-invalid`, `aria-describedby` to the error text, one polite `aria-live` region per builder.
 
 ### Milestone 5: theme, demo, docs
 

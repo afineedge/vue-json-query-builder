@@ -134,6 +134,8 @@ watch(
   (disabled) => disabled && close(false),
 )
 onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPointerDown))
+
+defineExpose({ focus: () => button.value?.focus() })
 </script>
 
 <template>
