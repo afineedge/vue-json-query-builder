@@ -43,8 +43,8 @@ export const TYPE_OPERATOR_LABELS: Readonly<Partial<Record<FieldType, Partial<Re
 }
 
 /**
- * The label for an operator: your `overrides` first, then the field type's wording, then
- * the default.
+ * The label for an operator: the field's own `operatorLabels` first, then `overrides` (the
+ * builder's `operatorLabels` prop), then the field type's wording, then the default.
  */
 export function operatorLabel(
   operator: Operator,
@@ -52,6 +52,7 @@ export function operatorLabel(
   overrides?: Partial<Record<Operator, string>>,
 ): string {
   return (
+    field?.operatorLabels?.[operator] ??
     overrides?.[operator] ??
     (field && TYPE_OPERATOR_LABELS[field.type]?.[operator]) ??
     DEFAULT_OPERATOR_LABELS[operator] ??

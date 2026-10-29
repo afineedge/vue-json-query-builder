@@ -31,6 +31,8 @@ export {
   TYPE_OPERATOR_LABELS,
   createGroup,
   isBetweenReversed,
+  isIsoDate,
+  isTime,
   isQueryValid,
   isRuleComplete,
   isRuleValid,

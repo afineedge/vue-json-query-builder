@@ -9,17 +9,44 @@ export function emptyValue(arity: Arity): unknown {
   return null
 }
 
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
+const TIME = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/
+
+/** Whether a value is a real calendar date as `YYYY-MM-DD` (so `2026-02-30` is not). */
+export function isIsoDate(value: unknown): value is string {
+  const match = typeof value === 'string' ? ISO_DATE.exec(value) : null
+  if (!match) return false
+  const [year, month, day] = match.slice(1).map(Number) as [number, number, number]
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+  const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+  return daysInMonth !== undefined && day >= 1 && day <= daysInMonth
+}
+
+/** Whether a value is a 24-hour time as `HH:MM` or `HH:MM:SS`. */
+export function isTime(value: unknown): value is string {
+  return typeof value === 'string' && TIME.test(value)
+}
+
 function isPresent(value: unknown, type: FieldType): boolean {
-  if (typeof value === 'number') return Number.isFinite(value)
-  // Number fields emit numbers (fix 10), so a numeric string there is not a value.
-  if (type === 'number') return false
-  return typeof value === 'string' && value.trim() !== ''
+  switch (type) {
+    // Number fields emit numbers (fix 10), so a numeric string there is not a value.
+    case 'number':
+      return typeof value === 'number' && Number.isFinite(value)
+    // A malformed date or time (say, from a hand-edited URL) is unfinished, so it's pruned.
+    case 'date':
+      return isIsoDate(value)
+    case 'time':
+      return isTime(value)
+    default:
+      return typeof value === 'number' ? Number.isFinite(value) : typeof value === 'string' && value.trim() !== ''
+  }
 }
 
 /**
  * Whether the rule has every value its operator needs: one value, both ends of a
- * `between`, or a non-empty array. Number values must be finite numbers. A rule with no
- * field definition is never complete.
+ * `between`, or a non-empty array. Number values must be finite numbers, dates real
+ * `YYYY-MM-DD` dates, and times `HH:MM` or `HH:MM:SS`. A rule with no field definition is
+ * never complete.
  */
 export function isRuleComplete(rule: QueryRule, field: FieldDef | undefined): boolean {
   if (!field || !isOperator(rule.operator)) return false
