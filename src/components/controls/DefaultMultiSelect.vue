@@ -68,6 +68,18 @@ function move(to: number) {
   scrollActiveIntoView()
 }
 
+/**
+ * Follows the pointer only when the mouse really moves. A keyboard jump scrolls the list,
+ * sliding a different option under a resting mouse; browsers report that as the pointer
+ * entering it, which used to steal the active option, so Enter picked the wrong one.
+ */
+let lastPointer: { x: number; y: number } | undefined
+function onOptionPointerMove(event: PointerEvent, index: number) {
+  if (lastPointer?.x === event.clientX && lastPointer.y === event.clientY) return
+  lastPointer = { x: event.clientX, y: event.clientY }
+  activeIndex.value = index
+}
+
 let typed = ''
 let typedAt = 0
 function typeahead(char: string) {
@@ -188,7 +200,7 @@ defineExpose({ focus: () => button.value?.focus() })
           i === activeIndex ? 'bg-light outline-2 -outline-offset-2 outline-primary' : 'hover:bg-neutral-very-light',
         ]"
         @click="toggle(option)"
-        @pointerenter="activeIndex = i"
+        @pointermove="onOptionPointerMove($event, i)"
       >
         <span
           aria-hidden="true"
