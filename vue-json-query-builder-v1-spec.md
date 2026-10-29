@@ -75,7 +75,7 @@ Plan for rewriting vue-json-query-builder as v1: Vue 3, TypeScript, Tailwind v4.
 
 ### Milestone 6: release
 
-- [ ] Merge to `master`, push tag `v1.0.0-beta.0`, confirm the publish workflow runs and `npm view vue-json-query-builder@beta version` returns it.
+- [x] Merge to `master`, push tag `v1.0.0-beta.0`, confirm the publish workflow runs and `npm view vue-json-query-builder@beta version` returns it.
 
 ## Tests (Vitest)
 
