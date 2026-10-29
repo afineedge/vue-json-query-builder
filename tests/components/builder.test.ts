@@ -583,3 +583,43 @@ describe('malformed dates from a URL', () => {
     expect(lastValid(wrapper)).toBe(false)
   })
 })
+
+describe('multi-select with the mouse resting over the list', () => {
+  // test-utils can't set clientX on jsdom's PointerEvent, so dispatch a real one.
+  const movePointer = async (option: { element: Element }, clientX: number, clientY: number) => {
+    option.element.dispatchEvent(new PointerEvent('pointermove', { clientX, clientY, bubbles: true }))
+    await flush()
+  }
+
+  it('keeps the typeahead match active when the list scrolls under a still mouse', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])) })
+    await wrapper.find('button[aria-haspopup="listbox"]').trigger('keydown', { key: 'ArrowDown' })
+    await flush()
+    const listbox = wrapper.find('[role="listbox"]')
+    const options = () => wrapper.findAll('[role="option"]')
+
+    // The mouse rests over option 0.
+    await movePointer(options()[0]!, 40, 40)
+    expect(listbox.attributes('aria-activedescendant')).toMatch(/option-0$/)
+
+    // Typing jumps to "Sale"; the scroll slides option 0 under the still mouse again.
+    await listbox.trigger('keydown', { key: 's' })
+    await options()[0]!.trigger('pointerenter')
+    await movePointer(options()[0]!, 40, 40)
+    expect(listbox.attributes('aria-activedescendant')).toMatch(/option-1$/)
+
+    await listbox.trigger('keydown', { key: 'Enter' })
+    expect(lastQuery(wrapper)).toEqual(tree(r('tags', 'any_of', ['sale'])))
+  })
+
+  it('still follows the mouse when it really moves', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])) })
+    await wrapper.find('button[aria-haspopup="listbox"]').trigger('click')
+    await flush()
+    const listbox = wrapper.find('[role="listbox"]')
+    await movePointer(wrapper.findAll('[role="option"]')[1]!, 40, 60)
+    expect(listbox.attributes('aria-activedescendant')).toMatch(/option-1$/)
+    await movePointer(wrapper.findAll('[role="option"]')[0]!, 40, 30)
+    expect(listbox.attributes('aria-activedescendant')).toMatch(/option-0$/)
+  })
+})
