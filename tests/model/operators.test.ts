@@ -61,3 +61,13 @@ describe('operatorLabel', () => {
     expect(operatorLabel('lte')).toBe('is at most')
   })
 })
+
+describe('per-field operator labels', () => {
+  it('win over the builder overrides and the type wording', () => {
+    const amount = { field: 'amount', label: 'Amount', type: 'number' as const, operatorLabels: { gte: 'at least', lte: 'at most' } }
+    expect(operatorLabel('gte', amount)).toBe('at least')
+    expect(operatorLabel('gte', amount, { gte: 'no less than' })).toBe('at least')
+    expect(operatorLabel('gt', amount, { gt: 'more than' })).toBe('more than')
+    expect(operatorLabel('eq', amount)).toBe('is')
+  })
+})

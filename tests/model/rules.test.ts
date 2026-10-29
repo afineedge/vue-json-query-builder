@@ -8,6 +8,8 @@ import {
   isQueryValid,
   isRuleComplete,
   isRuleValid,
+  isIsoDate,
+  isTime,
   pruneIncomplete,
   queryHasErrors,
   ruleFor,
@@ -195,5 +197,39 @@ describe('ruleProblem', () => {
   it('queryHasErrors ignores blanks and finds nested problems', () => {
     expect(queryHasErrors(tree(r('name', 'eq', null), tree(r('price', 'gt', null))), fields)).toBe(false)
     expect(queryHasErrors(tree(r('name', 'eq', 'a'), tree(r('price', 'between', [5, 1]))), fields)).toBe(true)
+  })
+})
+
+describe('date and time values', () => {
+  it('counts only real YYYY-MM-DD dates as present', () => {
+    const date = field('date')
+    expect(isRuleComplete(r('date', 'eq', '2026-02-28'), date)).toBe(true)
+    expect(isRuleComplete(r('date', 'eq', '2024-02-29'), date)).toBe(true)
+    for (const bad of ['x', 5, '2026-02-30', '2023-02-29', '2026-13-01', '2026-00-10', '2026-1-5', '20260105', ' 2026-01-05']) {
+      expect(isRuleComplete(r('date', 'eq', bad), date), String(bad)).toBe(false)
+    }
+    expect(isRuleComplete(r('date', 'between', ['2026-01-01', '2026-02-30']), date)).toBe(false)
+  })
+
+  it('counts only HH:MM or HH:MM:SS times as present', () => {
+    const time = field('time')
+    expect(isRuleComplete(r('time', 'eq', '09:00'), time)).toBe(true)
+    expect(isRuleComplete(r('time', 'eq', '23:59:59'), time)).toBe(true)
+    for (const bad of ['x', 900, '9:00', '24:00', '12:60', '09:00:60']) {
+      expect(isRuleComplete(r('time', 'eq', bad), time), String(bad)).toBe(false)
+    }
+  })
+
+  it('prunes a malformed date instead of treating it as an error', () => {
+    const tree: QueryGroup = { condition: 'and', rules: [r('date', 'gte', 'x'), r('name', 'eq', 'a')] }
+    expect(ruleProblem(r('date', 'gte', 'x'), field('date'))).toBeNull()
+    expect(pruneIncomplete(tree, fields)).toEqual({ condition: 'and', rules: [r('name', 'eq', 'a')] })
+  })
+
+  it('exports the checks', () => {
+    expect(isIsoDate('2026-10-29')).toBe(true)
+    expect(isIsoDate('2026-02-30')).toBe(false)
+    expect(isTime('07:30')).toBe(true)
+    expect(isTime('7:30')).toBe(false)
   })
 })

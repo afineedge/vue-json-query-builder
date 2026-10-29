@@ -566,3 +566,20 @@ describe('operator labels', () => {
     expect((overridden.find('select[aria-label="Operator"]').element as HTMLSelectElement).selectedOptions[0]!.text).toBe('later than')
   })
 })
+
+describe('per-field operator labels in the builder', () => {
+  it('shows a field\'s own labels in its operator select', () => {
+    const custom = fields.map((f) => (f.field === 'price' ? { ...f, operatorLabels: { gte: 'at least' } } : f))
+    const wrapper = mountBuilder({ fields: custom, modelValue: tree(r('price', 'gte', 5), r('date', 'gte', '2026-01-01')) })
+    const selected = wrapper.findAll('select[aria-label="Operator"]').map((s) => (s.element as HTMLSelectElement).selectedOptions[0]!.text)
+    expect(selected).toEqual(['at least', 'is on or after'])
+  })
+})
+
+describe('malformed dates from a URL', () => {
+  it('leave the rule unfinished: no error, not valid, and pruned', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('date', 'gte', 'x'), r('name', 'eq', 'a')), valid: true })
+    expect(wrapper.find('p.text-danger').exists()).toBe(false)
+    expect(lastValid(wrapper)).toBe(false)
+  })
+})

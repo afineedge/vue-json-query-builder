@@ -119,13 +119,14 @@ The tree contains only these properties. Row keys are tracked outside it, so the
 | `label` | `string` | The name shown in the field select. |
 | `type` | `'text' \| 'number' \| 'date' \| 'time' \| 'select'` | Picks the default operators and value control. |
 | `operators` | `Operator[]` | Replaces the type's default operators. The first one is the default for a new rule. |
+| `operatorLabels` | `Partial<Record<Operator, string>>` | Labels for this field's operators, for example `{ gte: 'at least', lte: 'at most' }`. They win over the builder's `operatorLabels`. |
 | `options` | `{ value: string \| number, label: string }[]` | Choices for a `select` field. |
 | `multiValued` | `boolean` | On a `select`, switches the default operators to `any_of`, `all_of` and `none_of`. |
 | `inputType` | `string` | The native input type for a text field, for example `email` or `tel`. |
 | `component` | `Component` | Replaces the value control for this field only. See [Custom components](#custom-components). |
 | `placeholder` | `string` | Placeholder text for the value control. |
 
-Dates are `YYYY-MM-DD` strings and times are `HH:MM` strings, as native inputs produce them.
+Dates are `YYYY-MM-DD` strings and times are `HH:MM` (or `HH:MM:SS`) strings, as native inputs produce them. A date must be a real calendar date: `2026-02-30`, `"x"` or a number leaves the rule unfinished, so it's pruned rather than shown as an error.
 
 ## Operators
 
@@ -150,7 +151,7 @@ Dates are `YYYY-MM-DD` strings and times are `HH:MM` strings, as native inputs p
 | `all_of` | has all of | array | multi-valued select |
 | `none_of` | has none of | array | multi-valued select |
 
-Change the labels with the `operatorLabels` prop, for example `:operator-labels="{ eq: 'equals' }"`. Your labels apply to every field type and win over the date and time wording.
+Change the labels with the `operatorLabels` prop, for example `:operator-labels="{ eq: 'equals' }"`. Your labels apply to every field type and win over the date and time wording. To change them for one field only, set that field's `operatorLabels`, which wins over both.
 
 Changing a rule's operator keeps its value when the new operator takes the same kind of value, and clears it otherwise. Changing a rule's field resets the operator to the field's first operator and clears the value.
 
@@ -299,8 +300,8 @@ Emit values in these shapes. Anything else leaves the rule incomplete, so it's s
 | --- | --- |
 | `text` | A string |
 | `number` | A finite number, or `null` when blank. A plain numeric string such as `"80000"` is converted. A formatted one such as `"80,000"` becomes `null`, so strip separators in your control (see `demo/components/CurrencyInput.vue`). |
-| `date` | A `YYYY-MM-DD` string. Not a `Date` object. Other formats also break the reversed-range check. |
-| `time` | An `HH:MM` string (24-hour) |
+| `date` | A real calendar date as a `YYYY-MM-DD` string. Not a `Date` object. Anything else leaves the rule unfinished. |
+| `time` | An `HH:MM` or `HH:MM:SS` string (24-hour) |
 | `select` | One option's `value`, or an array of them for list operators |
 
 The `select` control receives the same props (`SelectControlProps`), with one difference. For a rule whose field isn't in `fields`, the field and operator selects get `field: undefined`, so read it with `props.field?.…`.
@@ -356,11 +357,12 @@ defineExpose({ focus: () => inner.value?.focus() })
 | `ruleProblem(rule, field)` | The rule's error, `'field'`, `'operator'`, `'value'` or `'range'`, or `null`. A half-filled rule has none. |
 | `queryHasErrors(tree, fields)` | `true` when any rule has an error the user must fix. Blank rules don't count. |
 | `isBetweenReversed(rule, field)` | `true` for a complete `between` whose min is above its max. |
+| `isIsoDate(value)`, `isTime(value)` | The date and time checks the builder uses: a real `YYYY-MM-DD` date, and `HH:MM` or `HH:MM:SS`. |
 | `unknownValues(rule, field)` | A select rule's values that aren't in the field's options. |
 | `createGroup(fields)` | An AND group with one blank rule for the first field. |
 | `isQueryShape(value)` | `true` when a value is a well-formed tree all the way down. Use it on trees from a URL or storage. |
 | `sanitizeQuery(value)` | A copy of a malformed tree with bad nodes dropped and unknown conditions set to AND, or `null`. |
-| `operatorLabel(operator, field?, overrides?)` | The label the builder shows for an operator. |
+| `operatorLabel(operator, field?, overrides?)` | The label the builder shows for an operator: the field's `operatorLabels`, then `overrides`, then the date and time wording, then the default. |
 | `ruleFor(field)` | A blank rule for a field. |
 | `pruneIncomplete(tree, fields)` | The tree without incomplete or invalid rules and the groups they leave empty, or `null` if nothing is left. |
 | `operatorsFor(field)` | The operators a field offers, in order. |

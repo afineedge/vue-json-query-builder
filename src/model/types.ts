@@ -54,6 +54,8 @@ export interface FieldDef {
   type: FieldType
   /** Overrides the type's default operators. The first entry is the default for a new rule. */
   operators?: Operator[]
+  /** Labels for this field's operators. They win over the builder's `operatorLabels`. */
+  operatorLabels?: Partial<Record<Operator, string>>
   /** Choices for a `select` field. */
   options?: SelectOption[]
   /** On a `select`, switches the default operators to `any_of` / `all_of` / `none_of`. */
