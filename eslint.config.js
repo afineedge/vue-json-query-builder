@@ -14,8 +14,8 @@ export default defineConfigWithVueTs(
     },
   },
   {
-    // Test probes are short-named and declare props as plain name lists.
+    // Test probes are short-named, declare props as plain name lists, and share files.
     files: ['tests/**'],
-    rules: { 'vue/require-prop-types': 'off', 'vue/multi-word-component-names': 'off' },
+    rules: { 'vue/require-prop-types': 'off', 'vue/multi-word-component-names': 'off', 'vue/one-component-per-file': 'off' },
   },
 )

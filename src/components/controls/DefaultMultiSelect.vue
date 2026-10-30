@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { SelectOption, ValueControlProps } from '../../model'
-import { controlClass } from './styles'
+import { builderContextKey } from '../context'
+import { focusRef } from '../focus'
+import DefaultMultiSelectTrigger from './DefaultMultiSelectTrigger.vue'
 
 /**
  * A button that opens a multi-select listbox (ARIA listbox pattern). Arrow keys, Home/End
@@ -14,7 +16,9 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 const open = ref(false)
 const activeIndex = ref(0)
 const root = ref<HTMLElement>()
-const button = ref<HTMLButtonElement>()
+// The trigger button can be the host's (`components.multiSelectTrigger`); the listbox stays ours.
+const trigger = inject(builderContextKey, null)?.components.multiSelectTrigger ?? DefaultMultiSelectTrigger
+const button = ref()
 const listbox = ref<HTMLElement>()
 
 const options = computed<SelectOption[]>(() => props.options ?? [])
@@ -54,7 +58,7 @@ async function openList() {
 function close(restoreFocus: boolean) {
   if (!open.value) return
   open.value = false
-  if (restoreFocus) button.value?.focus()
+  if (restoreFocus) focusRef(button.value)
 }
 
 function scrollActiveIntoView() {
@@ -148,7 +152,7 @@ watch(
 )
 onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPointerDown))
 
-defineExpose({ focus: () => button.value?.focus() })
+defineExpose({ focus: () => focusRef(button.value) })
 </script>
 
 <template>
@@ -156,11 +160,13 @@ defineExpose({ focus: () => button.value?.focus() })
     ref="root"
     class="relative"
   >
-    <button
+    <component
+      :is="trigger"
       :id="id"
       ref="button"
-      type="button"
-      :class="[controlClass, 'flex items-center justify-between gap-2 text-left']"
+      :open="open"
+      :label="summary"
+      :empty="!options.some(isSelected)"
       :disabled="disabled"
       aria-haspopup="listbox"
       :aria-expanded="open"
@@ -170,13 +176,7 @@ defineExpose({ focus: () => button.value?.focus() })
       :aria-invalid="ariaInvalid || undefined"
       @click="open ? close(true) : openList()"
       @keydown="onButtonKeydown"
-    >
-      <span class="truncate">{{ summary }}</span>
-      <span
-        aria-hidden="true"
-        class="text-xs"
-      >▾</span>
-    </button>
+    />
     <ul
       v-show="open"
       :id="listboxId"

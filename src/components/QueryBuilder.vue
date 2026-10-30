@@ -24,6 +24,7 @@ import DefaultButton from './controls/DefaultButton.vue'
 import DefaultInput from './controls/DefaultInput.vue'
 import DefaultModal from './controls/DefaultModal.vue'
 import DefaultMultiSelect from './controls/DefaultMultiSelect.vue'
+import DefaultMultiSelectTrigger from './controls/DefaultMultiSelectTrigger.vue'
 import DefaultSelect from './controls/DefaultSelect.vue'
 import QueryGroup from './QueryGroup.vue'
 import SavedQueries from './SavedQueries.vue'
@@ -91,6 +92,7 @@ const DEFAULT_COMPONENTS: Record<ComponentName, BuilderContext['components'][Com
   select: DefaultSelect,
   input: DefaultInput,
   multiSelect: DefaultMultiSelect,
+  multiSelectTrigger: DefaultMultiSelectTrigger,
   date: DefaultInput,
   time: DefaultInput,
   number: DefaultInput,
