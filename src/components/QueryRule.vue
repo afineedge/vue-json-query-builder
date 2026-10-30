@@ -158,7 +158,8 @@ function formatValue(value: unknown): string {
     class="rounded border border-neutral-border bg-neutral-white p-2"
   >
     <div class="flex flex-wrap items-start gap-2">
-      <div class="w-full sm:w-44">
+      <!-- Hosts can widen the columns with --vjqb-field-width / --vjqb-operator-width. -->
+      <div class="w-full sm:w-[var(--vjqb-field-width,11rem)]">
         <component
           :is="ctx.components.select"
           :id="`${baseId}-field`"
@@ -177,7 +178,7 @@ function formatValue(value: unknown): string {
       </div>
 
       <template v-if="field">
-        <div class="w-full sm:w-44">
+        <div class="w-full sm:w-[var(--vjqb-operator-width,11rem)]">
           <component
             :is="ctx.components.select"
             :id="`${baseId}-operator`"

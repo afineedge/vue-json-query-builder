@@ -67,7 +67,16 @@ export interface FieldDef {
   placeholder?: string
 }
 
-export type ComponentName = 'button' | 'select' | 'input' | 'multiSelect' | 'date' | 'time' | 'number' | 'modal'
+export type ComponentName =
+  | 'button'
+  | 'select'
+  | 'input'
+  | 'multiSelect'
+  | 'multiSelectTrigger'
+  | 'date'
+  | 'time'
+  | 'number'
+  | 'modal'
 
 export type ComponentMap = Partial<Record<ComponentName, Component>>
 
@@ -82,6 +91,20 @@ export interface ValueControlProps {
   ariaLabel: string
   ariaDescribedby?: string
   ariaInvalid?: boolean
+  disabled?: boolean
+}
+
+/**
+ * Props the default multi-select's trigger button receives. The listbox's `id`, `aria-*`
+ * attributes and `click`/`keydown` handlers arrive as attributes for the focusable element.
+ */
+export interface MultiSelectTriggerProps {
+  /** Whether the listbox is open. */
+  open: boolean
+  /** What to show: the selected label, "N selected", or the placeholder. */
+  label: string
+  /** True when nothing is selected, so `label` is the placeholder. */
+  empty: boolean
   disabled?: boolean
 }
 

@@ -245,6 +245,19 @@ The components use only these color tokens. Define them in your app's `@theme`, 
 
 The theme also sets `--radius`, `--radius-sm` and the `--text-xs` to `--text-lg` sizes, matching Tailwind's defaults. Because it uses `@theme default`, any token your app defines wins.
 
+### Column widths
+
+On screens 640px and wider, the field and operator selects sit in fixed-width columns, 11rem each by default. To fit longer field labels, set these CSS variables on the builder or any ancestor:
+
+```css
+.deal-search {
+  --vjqb-field-width: 15rem;
+  --vjqb-operator-width: 12rem;
+}
+```
+
+Hosts that don't set them see no change.
+
 ## Custom components
 
 Pass your own controls through the `components` prop. Any key you leave out uses the default.
@@ -268,6 +281,7 @@ const components: ComponentMap = {
 | `select` | Native `<select>` | The field and operator selects, and single-value select fields |
 | `input` | Native input | Text fields |
 | `multiSelect` | Listbox popover | List operators on select fields |
+| `multiSelectTrigger` | Native button with a chevron | Only the button that opens the default multi-select. The listbox and its keyboard behavior stay the library's. |
 | `number` | Native number input | Number fields |
 | `date` | Native date input | Date fields |
 | `time` | Native time input | Time fields |
@@ -305,6 +319,35 @@ Emit values in these shapes. Anything else leaves the rule incomplete, so it's s
 | `select` | One option's `value`, or an array of them for list operators |
 
 The `select` control receives the same props (`SelectControlProps`), with one difference. For a rule whose field isn't in `fields`, the field and operator selects get `field: undefined`, so read it with `props.field?.…`.
+
+### Multi-select trigger
+
+To make the default multi-select match your own controls, replace only its button with `components.multiSelectTrigger`. You keep the library's listbox, with its typeahead, arrow keys, Home/End, Escape and screen reader support.
+
+The trigger receives these props (`MultiSelectTriggerProps`):
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `open` | `boolean` | Whether the listbox is open, for example to rotate a chevron. |
+| `label` | `string` | What to show: the selected option's label, "N selected", or the placeholder. |
+| `empty` | `boolean` | `true` when nothing is selected, so `label` is the placeholder. |
+| `disabled` | `boolean` | Whether the control is disabled. |
+
+The listbox's `id`, `aria-haspopup`, `aria-expanded`, `aria-controls`, `aria-label`, `aria-describedby`, `aria-invalid`, and its `click` and `keydown` handlers arrive as attributes. Render a single root `<button>`, which Vue gives them to by default, and don't declare `click` or `keydown` in `emits`. Expose `focus()` or keep the button as the root, so Escape can return focus to it.
+
+```vue
+<script setup lang="ts">
+import type { MultiSelectTriggerProps } from 'vue-json-query-builder'
+defineProps<MultiSelectTriggerProps>()
+</script>
+
+<template>
+  <button type="button" class="app-select" :disabled="disabled">
+    <span :class="{ 'app-select__placeholder': empty }">{{ label }}</span>
+    <AppChevron :up="open" />
+  </button>
+</template>
+```
 
 ### Buttons and modals
 

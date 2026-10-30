@@ -623,3 +623,63 @@ describe('multi-select with the mouse resting over the list', () => {
     expect(listbox.attributes('aria-activedescendant')).toMatch(/option-0$/)
   })
 })
+
+describe('multi-select trigger', () => {
+  // A host trigger: one root element, so the listbox's id, aria-* and handlers reach it.
+  const HostTrigger = defineComponent({
+    name: 'HostTrigger',
+    props: ['open', 'label', 'empty', 'disabled'],
+    setup: (props) => () =>
+      h('button', { type: 'button', class: ['host-trigger', props.empty && 'is-empty'], disabled: props.disabled }, props.label),
+  })
+
+  it('renders a host trigger with the library listbox behind it', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])), components: { multiSelectTrigger: HostTrigger } })
+    const trigger = () => wrapper.find('button.host-trigger')
+    expect(trigger().exists()).toBe(true)
+    expect(trigger().text()).toBe('Select…')
+    expect(trigger().classes()).toContain('is-empty')
+    expect(trigger().attributes('aria-haspopup')).toBe('listbox')
+    expect(trigger().attributes('aria-label')).toBe('Value: Select…')
+    expect(trigger().attributes('id')).toMatch(/^vjqb-n\d+-value$/)
+
+    await trigger().trigger('keydown', { key: 'ArrowDown' })
+    await flush()
+    const listbox = wrapper.find('[role="listbox"]')
+    expect(trigger().attributes('aria-expanded')).toBe('true')
+    expect(document.activeElement).toBe(listbox.element)
+    await listbox.trigger('keydown', { key: 's' })
+    await listbox.trigger('keydown', { key: 'Enter' })
+    expect(lastQuery(wrapper)).toEqual(tree(r('tags', 'any_of', ['sale'])))
+    expect(trigger().text()).toBe('Sale')
+    expect(trigger().classes()).not.toContain('is-empty')
+
+    await listbox.trigger('keydown', { key: 'Escape' })
+    expect(document.activeElement).toBe(trigger().element)
+  })
+
+  it('opens and closes on click through a host trigger', async () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])), components: { multiSelectTrigger: HostTrigger } })
+    await wrapper.find('button.host-trigger').trigger('click')
+    await flush()
+    expect(wrapper.find('button.host-trigger').attributes('aria-expanded')).toBe('true')
+    await wrapper.find('button.host-trigger').trigger('click')
+    expect(wrapper.find('button.host-trigger').attributes('aria-expanded')).toBe('false')
+  })
+
+  it('draws the default indicator as a chevron in the text colour, not a glyph', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('tags', 'any_of', [])) })
+    const trigger = wrapper.find('button[aria-haspopup="listbox"]')
+    expect(trigger.find('svg').attributes('stroke')).toBe('currentColor')
+    expect(trigger.text()).not.toContain('▾')
+  })
+})
+
+describe('column widths', () => {
+  it('reads the field and operator widths from CSS variables, defaulting to 11rem', () => {
+    const wrapper = mountBuilder({ modelValue: tree(r('name', 'eq', 'a')) })
+    const columnOf = (label: string) => wrapper.find(`select[aria-label="${label}"]`).element.parentElement!
+    expect(columnOf('Field').className).toContain('sm:w-[var(--vjqb-field-width,11rem)]')
+    expect(columnOf('Operator').className).toContain('sm:w-[var(--vjqb-operator-width,11rem)]')
+  })
+})

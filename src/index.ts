@@ -15,6 +15,7 @@ export type {
   QueryNode,
   QueryRule,
   LocalStorageAdapter,
+  MultiSelectTriggerProps,
   NodePath,
   RuleProblem,
   RuleValueSlotProps,
